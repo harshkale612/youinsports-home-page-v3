@@ -1,0 +1,259 @@
+@import "tailwindcss";
+
+/*
+ * YouInSports — global sports network.
+ * Palette is deep-space first: the page background has to read as the same
+ * material as the space behind the Earth, so the WebGL canvas can sit behind
+ * every section without a visible seam.
+ */
+:root {
+  /* Navy-black, not neutral black: every dark surface carries a little of the
+     logo's navy, so the whole page reads as one brand material. The globe's
+     canvas paints the same `--color-void`, so sections sit over it seamlessly. */
+  --color-void: #030b12;
+  --color-bg: #05121c;
+  --color-bg-elevated: #081a27;
+  --color-surface: #0c2232;
+  --color-text: #f4f7fc;
+  /* Greys carry a little of the brand navy's hue, so body copy sits in the
+     same family as the logo rather than a neutral slate. */
+  --color-muted: #93a9ba;
+  --color-faint: #5f7789;
+  --color-border: rgba(170, 205, 235, 0.1);
+  --color-border-strong: rgba(170, 205, 235, 0.2);
+
+  /* Brand palette, sampled from the YouInSports logo. Fixed on purpose: the
+     page no longer retints per sport, so these read the same everywhere.
+     Navy is the logo's "SPORTS"; on this dark page it is a surface tint and
+     the ink on orange, never body text, because it has no contrast here. */
+  --brand-orange: #f06b28;
+  --brand-blue: #2c8fe3;
+  --brand-navy: #0a2f42;
+  /* Text on orange fills. Navy on orange is the logo's own pairing, and it
+     clears AA where white on this orange does not. */
+  --color-ink: #041a26;
+
+  /* Blue ("IN") is where the athlete is now: selection, progress, readings. */
+  --accent-hue: 208;
+  --color-accent: var(--brand-blue);
+  --color-accent-strong: #5aabef;
+  --color-accent-soft: rgb(44 143 227 / 0.14);
+  --color-accent-line: rgb(44 143 227 / 0.36);
+
+  /* Orange ("YOU") is energy and direction: the primary action, section
+     labels, and wherever the athlete is headed next. */
+  --color-orange: var(--brand-orange);
+  --color-orange-strong: #ff8a4c;
+  --color-orange-soft: rgb(240 107 40 / 0.14);
+  --color-orange-line: rgb(240 107 40 / 0.42);
+
+  --color-cyan: hsl(186 86% 62%);
+
+  /* Floating glass over the globe — navy-tinted so panels read as brand, not grey. */
+  --glass-bg: rgb(6 22 34 / 0.74);
+  --glass-border: rgb(150 200 240 / 0.12);
+
+  /* Fixed rhythm for section padding so the scroll narrative stays even. */
+  --section-y: clamp(6rem, 12vh, 10rem);
+}
+
+@theme inline {
+  --color-void: var(--color-void);
+  --color-bg: var(--color-bg);
+  --color-bg-elevated: var(--color-bg-elevated);
+  --color-surface: var(--color-surface);
+  --color-fg: var(--color-text);
+  --color-muted: var(--color-muted);
+  --color-faint: var(--color-faint);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-accent: var(--color-accent);
+  --color-accent-strong: var(--color-accent-strong);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-accent-line: var(--color-accent-line);
+  --color-orange: var(--color-orange);
+  --color-orange-strong: var(--color-orange-strong);
+  --color-orange-soft: var(--color-orange-soft);
+  --color-orange-line: var(--color-orange-line);
+  --color-navy: var(--brand-navy);
+  --color-ink: var(--color-ink);
+  --color-cyan: var(--color-cyan);
+
+  --font-display: var(--font-geist);
+  --font-sans: var(--font-inter);
+
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-marquee: marquee 44s linear infinite;
+  --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(1.25rem); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.85); opacity: 0.7; }
+    70% { transform: scale(1.9); opacity: 0; }
+    100% { transform: scale(1.9); opacity: 0; }
+  }
+}
+
+html {
+  color-scheme: dark;
+  /* The pinned WebGL canvas needs a stable viewport; smooth scroll is owned by
+     GSAP ScrollTrigger, not the browser. */
+  scroll-behavior: auto;
+}
+
+body {
+  background: var(--color-void);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The globe is draggable from any empty part of the page, so the page itself
+   carries the grab affordance. Interactive elements override it as usual. */
+@media (pointer: fine) {
+  body[data-globe-interactive="true"] {
+    cursor: grab;
+  }
+
+  body[data-globe-dragging="true"],
+  body[data-globe-dragging="true"] * {
+    cursor: grabbing !important;
+  }
+}
+
+::selection {
+  background: var(--color-orange);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Editorial display type: very tight tracking at large optical sizes. */
+.display-xl {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: clamp(3.25rem, 11vw, 9.5rem);
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+}
+
+.display-lg {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: clamp(2.25rem, 4.7vw, 4.4rem);
+  line-height: 0.96;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+}
+
+.display-md {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: clamp(1.75rem, 3.4vw, 3rem);
+  line-height: 1.02;
+  letter-spacing: -0.028em;
+  font-weight: 600;
+}
+
+/* -- Brand treatments ------------------------------------------------ */
+
+/* Display words set in the brand orange, lit from the top like stadium light. */
+.text-brand {
+  background: linear-gradient(180deg, #ffb07a 0%, var(--brand-orange) 55%, #e2551b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The primary action: a lit orange, deeper at the base so it reads as solid. */
+.bg-brand-cta {
+  background: linear-gradient(180deg, #ff8f52 0%, var(--brand-orange) 52%, #e0561d 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    0 0 0 1px rgb(255 138 76 / 0.45),
+    0 14px 40px -14px rgb(240 107 40 / 0.85);
+}
+
+.bg-brand-cta:hover {
+  background: linear-gradient(180deg, #ffa16c 0%, #f57a3a 52%, #e8621f 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    0 0 0 1px rgb(255 160 110 / 0.6),
+    0 18px 50px -12px rgb(240 107 40 / 0.95);
+}
+
+/* Readings fill in blue that brightens toward the tip. */
+.bg-brand-reading {
+  background: linear-gradient(90deg, rgb(44 143 227 / 0.55), var(--brand-blue) 60%, #7cc0f5);
+  box-shadow: 0 0 14px -2px rgb(44 143 227 / 0.65);
+}
+
+/* Navy glass for panels floating over the globe. */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 28px 80px -32px rgb(0 0 0 / 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Glass with the logo's orange-to-blue running round its edge. The fill is
+   painted on the padding box and the gradient on the border box, so the
+   border stays a crisp 1px at any radius. */
+.glass-brand {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--glass-bg), var(--glass-bg)) padding-box,
+    linear-gradient(140deg, rgb(240 107 40 / 0.75), rgb(150 200 240 / 0.12) 42%, rgb(150 200 240 / 0.12) 62%, rgb(44 143 227 / 0.75)) border-box;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 30px 90px -30px rgb(0 0 0 / 0.95),
+    0 0 80px -40px rgb(240 107 40 / 0.35);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* A hairline in the logo's colours: orange into blue, fading at both ends. */
+.rule-brand {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(240 107 40 / 0.7) 18%,
+    rgb(170 205 235 / 0.14) 50%,
+    rgb(44 143 227 / 0.7) 82%,
+    transparent
+  );
+}
+
+.text-balance { text-wrap: balance; }
+.text-pretty { text-wrap: pretty; }
+
+/* Tabular figures keep the live data panels from jittering as numbers change. */
+.tabular { font-variant-numeric: tabular-nums; }
+
+.hide-scrollbar { scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
