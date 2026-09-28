@@ -34,7 +34,13 @@ export type AnalyticsEvent =
   | "journey_signup_submitted"
   | "journey_saved"
   | "journey_reset"
-  | "demo_persona_loaded";
+  | "demo_persona_loaded"
+  // About page
+  | "about_viewed"
+  | "about_cta_clicked"
+  // Coming-soon pages
+  | "coming_soon_viewed"
+  | "coming_soon_cta_clicked";
 
 /**
  * Dev-mode logging today; swap the body for a PostHog/Segment call later

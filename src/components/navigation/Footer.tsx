@@ -13,7 +13,7 @@ const GROUPS = [
   },
   {
     title: "Platform",
-    links: [{ label: "About", href: "/#ecosystem" }],
+    links: [{ label: "About", href: "/about" }],
   },
   {
     title: "Legal",
