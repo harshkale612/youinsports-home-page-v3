@@ -39,7 +39,9 @@ export function CompetitiveLandscape({
                 {tier.label}
               </span>
 
-              <div className="relative h-5 flex-1">
+              {/* Room past the track for the "You" marker, which sits after the
+                  bar — and the widest band runs the full track. */}
+              <div className="relative mr-9 h-5 flex-1">
                 <motion.div
                   initial={{ scaleX: 0 }}
                   whileInView={{ scaleX: 1 }}

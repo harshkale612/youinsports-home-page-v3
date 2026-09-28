@@ -53,9 +53,11 @@ export function JourneyWelcome({ onStart }: { onStart: () => void }) {
   }, []);
 
   return (
+    // Clipped sideways: the glow behind the headline is wider than a phone,
+    // and letting it widen the page pushes the fixed bar's buttons off screen.
     <section
       id="welcome"
-      className="relative flex min-h-svh flex-col justify-end pt-28 pb-12 md:justify-center md:pb-16"
+      className="relative flex min-h-svh flex-col justify-end overflow-x-clip pt-28 pb-12 md:justify-center md:pb-16"
       aria-labelledby="welcome-heading"
     >
       <div
