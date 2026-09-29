@@ -87,7 +87,7 @@ export function GrowthPath({
                 !isVertical &&
                   (isActive
                     ? "border-accent bg-accent-soft"
-                    : "border-white/10 bg-white/[0.02] hover:border-white/25"),
+                    : "border-tint/10 bg-tile shadow-[var(--shadow-tile)] hover:border-tint/25"),
               )}
             >
               {isVertical && (
@@ -96,10 +96,10 @@ export function GrowthPath({
                   className={cn(
                     "absolute left-0 top-[0.3rem] flex size-[0.62rem] items-center justify-center rounded-full border transition-colors duration-300",
                     isActive || isStart
-                      ? "border-accent bg-accent shadow-[0_0_10px_rgb(44_143_227/0.8)]"
+                      ? "border-accent bg-accent shadow-[0_0_10px_rgb(var(--accent-rgb)/calc(0.8*var(--glow)))]"
                       : isEnd
-                        ? "border-orange bg-orange shadow-[0_0_10px_rgb(240_107_40/0.8)]"
-                        : "border-white/25 bg-void",
+                        ? "border-orange bg-orange shadow-[0_0_10px_rgb(var(--orange-rgb)/calc(0.8*var(--glow)))]"
+                        : "border-tint/25 bg-void",
                   )}
                 />
               )}

@@ -2,14 +2,15 @@ import { cn } from "@/lib/utils";
 
 /**
  * The name, in the logo's colours: "You" orange, "In" blue. "Sports" is navy in
- * the logo, which has no contrast on this dark page, so it takes the text colour.
+ * the logo, which has no contrast on the dark theme, so there it takes the text
+ * colour; in daylight it's the logo's own navy.
  */
 export function Wordmark({ className }: { className?: string }) {
   return (
     <span className={className}>
-      <span className="text-orange">You</span>
-      <span className="text-accent">In</span>
-      <span className="text-fg">Sports</span>
+      <span className="text-[var(--wordmark-you)]">You</span>
+      <span className="text-[var(--wordmark-in)]">In</span>
+      <span className="text-[var(--wordmark-sports)]">Sports</span>
     </span>
   );
 }
@@ -113,7 +114,7 @@ export function DemoBadge({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className="size-1 rounded-full bg-orange shadow-[0_0_6px_var(--color-orange)]" aria-hidden />
+      <span className="size-1 rounded-full bg-orange shadow-[0_0_6px_rgb(var(--orange-rgb)/var(--glow))]" aria-hidden />
       Demo network
     </span>
   );

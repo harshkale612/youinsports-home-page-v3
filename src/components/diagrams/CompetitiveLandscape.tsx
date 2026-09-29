@@ -51,12 +51,12 @@ export function CompetitiveLandscape({
                   className={cn(
                     "h-full origin-left rounded-r-[4px] border-y border-r",
                     tier.isCurrent
-                      ? "border-accent/80 bg-gradient-to-r from-accent/20 to-accent/50 shadow-[0_0_18px_-4px_rgb(44_143_227/0.7)]"
+                      ? "border-accent/80 bg-gradient-to-r from-accent/20 to-accent/50 shadow-[0_0_18px_-4px_rgb(var(--accent-rgb)/calc(0.7*var(--glow)))]"
                       : tier.isTarget
                         ? "border-orange/45 bg-gradient-to-r from-orange/[0.04] to-orange/20"
                         : tier.isReached
                         ? "border-accent/25 bg-accent/12"
-                        : "border-white/10 bg-white/[0.04]",
+                        : "border-tint/10 bg-tint/[0.04]",
                   )}
                 />
 

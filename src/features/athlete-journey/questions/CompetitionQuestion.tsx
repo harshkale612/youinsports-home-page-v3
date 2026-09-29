@@ -95,7 +95,7 @@ export function CompetitionQuestion({
             value={competitionName}
             onChange={(event) => onNameChange(event.target.value)}
             placeholder="Maharashtra District Cricket Tournament"
-            className="mt-2.5 w-full rounded-full border border-white/12 bg-white/[0.04] px-5 py-3.5 text-[0.92rem] text-fg placeholder:text-faint focus:border-accent/70 focus:outline-none"
+            className="mt-2.5 w-full rounded-full border border-tint/12 bg-field-soft px-5 py-3.5 text-[0.92rem] text-fg shadow-[var(--shadow-tile)] transition-[border-color,box-shadow] duration-200 placeholder:text-faint focus:border-accent/70 focus:shadow-[var(--focus-halo)] focus:outline-none"
           />
         </label>
       </div>

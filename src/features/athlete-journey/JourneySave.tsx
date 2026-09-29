@@ -68,7 +68,7 @@ export function JourneySave({
           </div>
 
           {/* The route they described, compressed to one line of the story. */}
-          <ol className="mt-7 flex flex-col gap-2.5 border-y border-white/[0.08] py-6">
+          <ol className="mt-7 flex flex-col gap-2.5 border-y border-tint/[0.08] py-6">
             {[
               journey.snapshot.environmentLabel,
               journey.snapshot.competitionLabel,
@@ -88,7 +88,7 @@ export function JourneySave({
                   aria-hidden
                   className={cn(
                     "size-1.5 shrink-0 rounded-full",
-                    i === 2 ? "bg-orange shadow-[0_0_8px_var(--color-orange)]" : "bg-accent/60",
+                    i === 2 ? "bg-orange shadow-[0_0_8px_rgb(var(--orange-rgb)/var(--glow))]" : "bg-accent/60",
                   )}
                 />
                 <span
@@ -201,14 +201,14 @@ function Field({
         aria-describedby={error ? errorId : undefined}
         {...inputProps}
         className={cn(
-          "mt-2.5 w-full rounded-full border bg-[rgb(3_14_22/0.6)] px-5 py-3.5 text-[0.92rem] text-fg transition-[border-color,box-shadow] duration-200 placeholder:text-faint focus:outline-none",
+          "mt-2.5 w-full rounded-full border bg-field px-5 py-3.5 text-[0.92rem] text-fg shadow-[var(--shadow-tile)] transition-[border-color,box-shadow] duration-200 placeholder:text-faint focus:outline-none",
           error
-            ? "border-red-400/70"
-            : "border-[var(--glass-border)] focus:border-accent focus:shadow-[0_0_0_4px_rgb(44_143_227/0.18)]",
+            ? "border-error-line"
+            : "border-[var(--glass-border)] focus:border-accent focus:shadow-[0_0_0_4px_rgb(var(--accent-rgb)/0.18)]",
         )}
       />
       {error && (
-        <p id={errorId} role="alert" className="mt-2 text-[0.78rem] text-red-300">
+        <p id={errorId} role="alert" className="mt-2 text-[0.78rem] text-error">
           {error}
         </p>
       )}

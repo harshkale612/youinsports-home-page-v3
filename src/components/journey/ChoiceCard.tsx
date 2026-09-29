@@ -54,8 +54,8 @@ export function ChoiceCard({
         "group relative flex w-full items-start gap-3 overflow-hidden rounded-xl border text-left transition-all duration-300",
         size === "md" ? "px-4 py-3.5 md:px-5 md:py-4" : "px-3.5 py-3",
         selected
-          ? "border-accent bg-[linear-gradient(135deg,rgb(44_143_227/0.24),rgb(44_143_227/0.08))] shadow-[inset_0_1px_0_rgb(255_255_255/0.08),0_14px_40px_-18px_rgb(44_143_227/0.8)]"
-          : "border-[var(--glass-border)] bg-[rgb(8_28_42/0.5)] backdrop-blur-sm hover:-translate-y-px hover:border-accent/45 hover:bg-[rgb(12_40_60/0.6)]",
+          ? "border-accent bg-[image:var(--surface-choice-selected)] shadow-[var(--shadow-choice-selected)]"
+          : "border-[var(--glass-border)] bg-choice shadow-[var(--shadow-choice)] backdrop-blur-sm hover:-translate-y-px hover:border-accent/45 hover:bg-choice-hover hover:shadow-[var(--shadow-tile-hover)]",
       )}
     >
       {Icon && (
@@ -89,7 +89,7 @@ export function ChoiceCard({
         aria-hidden
         className={cn(
           "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border transition-all duration-300",
-          selected ? "border-accent bg-accent shadow-[0_0_10px_var(--color-accent)]" : "border-white/20 group-hover:border-accent/50",
+          selected ? "border-accent bg-accent shadow-[0_0_10px_rgb(var(--accent-rgb)/var(--glow))]" : "border-tint/20 group-hover:border-accent/50",
         )}
       >
         {selected && <Check className="size-2.5 text-white" strokeWidth={3} />}

@@ -19,7 +19,7 @@ export function LoadingTransition({ label }: { label: string }) {
           {label}
         </p>
       </div>
-      <div className="h-px w-full overflow-hidden bg-white/[0.06]">
+      <div className="h-px w-full overflow-hidden bg-tint/[0.06]">
         <motion.div
           className="h-full bg-gradient-to-r from-accent to-orange"
           initial={{ x: "-100%" }}

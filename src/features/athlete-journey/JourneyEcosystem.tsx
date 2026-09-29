@@ -144,7 +144,7 @@ export function JourneyEcosystem({ journey }: { journey: AthleteJourney }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-12% 0px" }}
               transition={{ duration: 0.55, ease, delay: i * 0.07 }}
-              className="flex gap-5 border-t border-white/[0.08] py-5 last:border-b"
+              className="flex gap-5 border-t border-tint/[0.08] py-5 last:border-b"
             >
               <span className="tabular flex size-8 shrink-0 items-center justify-center rounded-full border border-orange/40 bg-orange-soft font-display text-[0.66rem] font-semibold tracking-[0.06em] text-orange-strong">
                 {recommendation.index}
@@ -196,7 +196,7 @@ export function JourneyEcosystem({ journey }: { journey: AthleteJourney }) {
               <ol className="mt-7 flex flex-wrap items-center gap-x-2.5 gap-y-2">
                 {active.chain.map((node, i) => (
                   <li key={node} className="flex items-center gap-2.5">
-                    <span className="rounded-full border border-white/12 bg-white/[0.03] px-3 py-1.5 font-display text-[0.6rem] font-semibold tracking-[0.14em] text-fg uppercase">
+                    <span className="rounded-full border border-tint/12 bg-tag px-3 py-1.5 font-display text-[0.6rem] font-semibold tracking-[0.14em] text-fg uppercase">
                       {node}
                     </span>
                     {i < active.chain.length - 1 && (
@@ -231,7 +231,7 @@ export function JourneyEcosystem({ journey }: { journey: AthleteJourney }) {
             <ul className="mt-4 flex flex-col gap-3">
               {BEFORE.map((item) => (
                 <li key={item} className="flex gap-3 text-[0.9rem] leading-snug text-faint">
-                  <span aria-hidden className="mt-2 size-1 shrink-0 rounded-full bg-white/25" />
+                  <span aria-hidden className="mt-2 size-1 shrink-0 rounded-full bg-tint/25" />
                   {item}
                 </li>
               ))}

@@ -68,7 +68,7 @@ export function MetricBar({
         </p>
       </div>
 
-      <div className="relative mt-2.5 h-1.5 w-full rounded-full bg-white/[0.08]">
+      <div className="relative mt-2.5 h-1.5 w-full rounded-full bg-tint/[0.08]">
         <div
           className="bg-brand-reading h-full rounded-full transition-none"
           style={{ width: `${display}%` }}
@@ -76,7 +76,7 @@ export function MetricBar({
 
         {target !== undefined && (
           <span
-            className="absolute top-1/2 h-3.5 w-0.5 -translate-y-1/2 rounded-full bg-orange shadow-[0_0_8px_var(--color-orange)]"
+            className="absolute top-1/2 h-3.5 w-0.5 -translate-y-1/2 rounded-full bg-orange shadow-[0_0_8px_rgb(var(--orange-rgb)/var(--glow))]"
             style={{ left: `${target}%` }}
             // The tick is decorative; the "current / target" pair above states
             // the same thing in text.

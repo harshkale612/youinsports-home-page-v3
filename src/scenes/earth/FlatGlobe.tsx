@@ -9,6 +9,7 @@ import { useGlobalExperience } from "@/stores/globalExperienceStore";
 import { earthMotion } from "@/scenes/earth/earth-motion";
 import { markerScreen } from "@/scenes/earth/marker-registry";
 import { getFlatFraming } from "@/scenes/earth/scene-framing";
+import { getTheme, themeMotion } from "@/theme/theme";
 import {
   FlatEarthRenderer,
   angleDelta,
@@ -82,6 +83,10 @@ export function FlatGlobe() {
     let cy = 0;
     let radius = 0;
     let glow = 1;
+    /** 0 in the dark theme, 1 in the light — see `FlatEarthFrame.paper`. */
+    let paper = 0;
+    /** How day-side the current act wants the planet, before the theme. */
+    let daylight = 0;
     let parallaxX = 0;
     let parallaxY = 0;
 
@@ -197,6 +202,16 @@ export function FlatGlobe() {
       cx = settle(cx, framing.cx * dpr, lambda);
       cy = settle(cy, framing.cy * dpr, lambda);
       glow = settle(glow, framing.glow, lambda);
+      // Eased, so crossing into an act where copy runs over the planet reads
+      // as the planet turning into daylight rather than a cut — but quicker
+      // than the camera, because halfway between night and day is grey.
+      daylight = settle(daylight, framing.daylight, still ? lambda : 4.5);
+
+      // The theme is read per frame rather than subscribed to: switching it
+      // must never tear down or re-create this canvas, only repaint it.
+      const targetPaper = getTheme() === "light" ? 1 : 0;
+      paper = hasFramed && !still && !themeMotion.snap ? damp(paper, targetPaper, 9, delta) : targetPaper;
+      if (Math.abs(paper - targetPaper) < 0.002) paper = targetPaper;
 
       parallaxX = damp(parallaxX, still ? 0 : -earthMotion.pointerX * PARALLAX_X * dpr, 2.2, delta);
       parallaxY = damp(parallaxY, still ? 0 : -earthMotion.pointerY * PARALLAX_Y * dpr, 2.2, delta);
@@ -234,6 +249,9 @@ export function FlatGlobe() {
         time,
         delta,
         animate: !still,
+        paper,
+        // Night-side always in the dark theme.
+        day: paper * daylight,
       });
 
       markerScreen.points = points;

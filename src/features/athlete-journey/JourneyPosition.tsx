@@ -59,7 +59,7 @@ export function JourneyPosition({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-12% 0px" }}
         transition={{ duration: 0.7, ease }}
-        className="mt-12 grid grid-cols-2 gap-x-6 gap-y-7 border-y border-white/[0.08] py-8 md:grid-cols-3 lg:grid-cols-5"
+        className="mt-12 grid grid-cols-2 gap-x-6 gap-y-7 border-y border-tint/[0.08] py-8 md:grid-cols-3 lg:grid-cols-5"
       >
         {facts.map((fact) => (
           <div key={fact.label}>

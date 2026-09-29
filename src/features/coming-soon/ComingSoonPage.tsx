@@ -211,7 +211,7 @@ export function ComingSoonPage({
 function Backdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-      <div className="absolute inset-0 bg-[radial-gradient(rgb(170_205_235/0.12)_1px,transparent_1px)] [background-size:30px_30px] [mask-image:radial-gradient(ellipse_62%_55%_at_50%_38%,black,transparent_75%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(var(--dot-field-soft)_1px,transparent_1px)] [background-size:30px_30px] [mask-image:radial-gradient(ellipse_62%_55%_at_50%_38%,black,transparent_75%)]" />
       <div className="absolute top-[6%] -left-56 size-[44rem] animate-drift rounded-full bg-[radial-gradient(circle,rgb(240_107_40/0.12),transparent_62%)]" />
       <div className="absolute -top-56 -right-48 size-[48rem] animate-drift rounded-full bg-[radial-gradient(circle,rgb(44_143_227/0.13),transparent_62%)] [animation-delay:-9s]" />
 
@@ -225,7 +225,7 @@ function Backdrop() {
       >
         <div className="absolute top-[calc(100%-4rem)] left-1/2 h-[30rem] w-[max(170%,60rem)] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(44_143_227/0.14),transparent)]" />
         <div className="absolute top-[calc(100%-4rem)] left-1/2 h-[16rem] w-[max(120%,42rem)] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(240_107_40/0.36),rgb(240_107_40/0.08)_55%,transparent)]" />
-        <div className="absolute top-[calc(100%-4rem)] left-1/2 aspect-square w-[max(160%,40rem)] -translate-x-1/2 rounded-full bg-void shadow-[inset_0_1px_0_rgb(255_138_76/0.7)]" />
+        <div className="absolute top-[calc(100%-4rem)] left-1/2 aspect-square w-[max(160%,40rem)] -translate-x-1/2 rounded-full bg-planet shadow-[inset_0_1px_0_rgb(255_138_76/0.7)]" />
       </motion.div>
     </div>
   );

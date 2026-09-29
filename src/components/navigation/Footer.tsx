@@ -25,9 +25,17 @@ const GROUPS = [
   },
 ];
 
+/**
+ * The site footer. Dark in both themes, on purpose: a light page closes on the
+ * same night the dark one lives in — the horizon planets on the About and
+ * coming-soon pages rise straight into it — so `data-theme` pins it.
+ */
 export function Footer() {
   return (
-    <footer className="relative z-10 overflow-hidden bg-[linear-gradient(180deg,var(--color-void),var(--color-bg)_60%,#071a27)] py-14">
+    <footer
+      data-theme="dark"
+      className="relative z-10 overflow-hidden bg-[linear-gradient(180deg,var(--color-void),var(--color-bg)_60%,#071a27)] py-14"
+    >
       <span aria-hidden className="rule-brand absolute inset-x-0 top-0" />
       {/* The globe's orange sunrise, echoed once more at the very bottom. */}
       <div
@@ -69,7 +77,7 @@ export function Footer() {
           </nav>
         </div>
 
-        <div className="mt-14 flex flex-col gap-3 border-t border-white/[0.06] pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-14 flex flex-col gap-3 border-t border-tint/[0.06] pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[0.76rem] text-faint">
             &copy; {new Date().getFullYear()} YouInSports. All rights reserved.
           </p>

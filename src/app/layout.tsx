@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Inter } from "next/font/google";
+import { THEME_COLOR, THEME_INIT_SCRIPT } from "@/theme/theme-config";
 import "./globals.css";
 
 const geist = Geist({
@@ -14,8 +15,9 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#030b12",
-  colorScheme: "dark",
+  // The default theme's; the init script swaps it for the stored theme's.
+  themeColor: THEME_COLOR.dark,
+  colorScheme: "dark light",
 };
 
 export const metadata: Metadata = {
@@ -51,10 +53,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
+    // `data-theme` is written by the init script before first paint, so the
+    // server's markup never matches it — hence the suppressed warning, which
+    // covers this element's attributes only.
     <html
       lang="en"
       className={`${geist.variable} ${inter.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="min-h-full bg-void font-sans text-fg">{children}</body>
     </html>
   );

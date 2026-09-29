@@ -22,7 +22,9 @@ const COLUMN: Record<Align, string> = {
  *
  * Each section is a full viewport tall so the globe's framing for that act has
  * room to resolve, and carries its own scrim — the copy sits directly over a
- * live WebGL scene, so legibility can't be left to chance.
+ * live WebGL scene, so legibility can't be left to chance. The scrim is laid in
+ * `veil`, the theme's page colour at the theme's strength: dense at night,
+ * light by day, where the planet under wide copy is drawn day-side.
  */
 export function SectionFrame({
   id,
@@ -47,13 +49,13 @@ export function SectionFrame({
           aria-hidden
           className={cn(
             "pointer-events-none absolute inset-0",
-            align === "left" && "bg-gradient-to-b from-void/70 via-void/35 to-void/70 md:bg-gradient-to-r md:from-void/92 md:via-void/45 md:to-transparent",
-            align === "right" && "bg-gradient-to-b from-void/70 via-void/35 to-void/70 md:bg-gradient-to-l md:from-void/92 md:via-void/45 md:to-transparent",
-            align === "center" && "bg-gradient-to-b from-void/92 via-void/25 to-void/92",
+            align === "left" && "bg-gradient-to-b from-veil/70 via-veil/35 to-veil/70 md:bg-gradient-to-r md:from-veil-side/92 md:via-veil-side/45 md:to-transparent",
+            align === "right" && "bg-gradient-to-b from-veil/70 via-veil/35 to-veil/70 md:bg-gradient-to-l md:from-veil-side/92 md:via-veil-side/45 md:to-transparent",
+            align === "center" && "bg-gradient-to-b from-veil/92 via-veil/25 to-veil/92",
             // `wide` runs content across the full column width, directly over
             // the lit side of the globe — it needs a denser floor than the
             // single-column alignments, which only ever cover one half.
-            align === "wide" && "bg-gradient-to-b from-void/94 via-void/72 to-void/96",
+            align === "wide" && "bg-gradient-to-b from-veil/94 via-veil/72 to-veil/96",
           )}
         />
       )}

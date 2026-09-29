@@ -238,7 +238,33 @@ export type FlatFraming = {
   /** Extra rotation this act contributes, in degrees. */
   spinDeg: number;
   glow: number;
+  /**
+   * How far the planet turns day-side in this act — light theme only. See
+   * `DAYLIGHT_ACTS`.
+   */
+  daylight: number;
 };
+
+/**
+ * Acts where the planet keeps its night side in the light theme — wide
+ * screens only.
+ *
+ * Everywhere else copy runs across the planet, and its section lays a scrim
+ * over the globe to keep the copy legible. At night that dims a dark planet
+ * into darker space, which reads as depth; in daylight the same scrim would
+ * fade a dark planet into a flat grey disc. So those acts turn the planet
+ * day-side — a brand-blue halftone on paper — and the night side is kept for
+ * where the planet has the stage beside the copy: the hero and the questions.
+ * On a phone the copy always sits on top of the planet, so it is day-side
+ * throughout.
+ */
+const NIGHT_ACTS: ReadonlySet<EarthSceneState> = new Set([
+  "hero",
+  "journey-sport",
+  "journey-place",
+  "journey-competition",
+  "journey-level",
+]);
 
 /**
  * Where the flat globe sits on screen for an act.
@@ -282,5 +308,6 @@ export function getFlatFraming(
     radius,
     spinDeg: (framing.spin * 180) / Math.PI,
     glow: framing.atmosphere,
+    daylight: !portrait && NIGHT_ACTS.has(scene) ? 0 : 1,
   };
 }

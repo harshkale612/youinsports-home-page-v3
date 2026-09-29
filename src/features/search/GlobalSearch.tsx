@@ -125,7 +125,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
         type="button"
         aria-label="Close search"
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-void/80 backdrop-blur-md"
+        className="absolute inset-0 cursor-default bg-scrim backdrop-blur-md"
       />
 
       <motion.div
@@ -136,9 +136,9 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-label="Search the global athlete network"
-        className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-white/12 bg-[rgba(6,22,34,0.94)] shadow-[0_40px_120px_-40px_rgba(0,0,0,1)] backdrop-blur-2xl"
+        className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-tint/12 bg-dialog shadow-[var(--shadow-dialog)] backdrop-blur-2xl"
       >
-        <div className="flex items-center gap-3 border-b border-white/[0.08] px-5 transition-colors focus-within:border-accent/45">
+        <div className="flex items-center gap-3 border-b border-tint/[0.08] px-5 transition-colors focus-within:border-accent/45">
           <Search className="size-4 shrink-0 text-muted" aria-hidden />
           <input
             ref={inputRef}
@@ -161,7 +161,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
             type="button"
             onClick={onClose}
             aria-label="Close search"
-            className="flex size-7 shrink-0 items-center justify-center rounded-full border border-white/10 text-faint transition-colors hover:text-fg"
+            className="flex size-7 shrink-0 items-center justify-center rounded-full border border-tint/10 text-faint transition-colors hover:text-fg"
           >
             <X className="size-3.5" aria-hidden />
           </button>
@@ -182,7 +182,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
                     setHighlighted(0);
                     inputRef.current?.focus();
                   }}
-                  className="rounded-full border border-white/10 px-3 py-1.5 text-[0.78rem] text-muted transition-colors hover:border-accent/60 hover:text-fg"
+                  className="rounded-full border border-tint/10 px-3 py-1.5 text-[0.78rem] text-muted transition-colors hover:border-accent/60 hover:text-fg"
                 >
                   {suggestion.label}
                 </button>
@@ -205,7 +205,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
                   onClick={() => commit(result)}
                   className={cn(
                     "flex w-full items-center gap-3.5 px-5 py-3 text-left transition-colors",
-                    i === activeIndex ? "bg-white/[0.06]" : "hover:bg-white/[0.03]",
+                    i === activeIndex ? "bg-option-active" : "hover:bg-option-hover",
                   )}
                 >
                   <span className="w-6 shrink-0 text-center text-base leading-none" aria-hidden>
@@ -229,7 +229,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
           </ul>
         )}
 
-        <div className="flex items-center justify-between border-t border-white/[0.08] px-5 py-2.5">
+        <div className="flex items-center justify-between border-t border-tint/[0.08] px-5 py-2.5">
           <p className="font-display text-[0.55rem] font-semibold tracking-[0.18em] text-faint uppercase">
             Demo network
           </p>

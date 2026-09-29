@@ -62,7 +62,7 @@ export function GlobeAffordance() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="pointer-events-none fixed right-8 bottom-32 z-20 hidden items-center gap-2 rounded-full border border-white/10 bg-[rgba(4,15,24,0.88)] px-4 py-2 font-display text-[0.58rem] font-semibold tracking-[0.18em] text-muted uppercase backdrop-blur-md xl:flex"
+          className="pointer-events-none fixed right-8 bottom-32 z-20 hidden items-center gap-2 rounded-full border border-tint/10 bg-hint px-4 py-2 font-display text-[0.58rem] font-semibold tracking-[0.18em] text-muted uppercase shadow-[var(--shadow-float)] backdrop-blur-md xl:flex"
         >
           <Move className="size-3 text-accent" aria-hidden />
           Drag to rotate the globe

@@ -159,9 +159,9 @@ function PillarCard({ pillar, index }: { pillar: Pillar; index: number }) {
         onPointerMove={handlePointerMove}
         className={cn(
           "group relative h-full overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-7 backdrop-blur-xl md:p-8",
-          "shadow-[inset_0_1px_0_rgb(255_255_255/0.05),0_28px_80px_-32px_rgb(0_0_0/0.95)]",
+          "shadow-[var(--glass-shadow)]",
           "transition-[translate,border-color,box-shadow] duration-500 ease-out",
-          "hover:-translate-y-1 hover:border-orange/40 hover:shadow-[inset_0_1px_0_rgb(255_255_255/0.06),0_30px_80px_-36px_rgb(240_107_40/0.55)]",
+          "hover:-translate-y-1 hover:border-orange/40 hover:shadow-[var(--glass-shadow-hover)]",
         )}
       >
         <div
@@ -216,7 +216,7 @@ function JourneyStages() {
       <ol className="relative mt-10 grid gap-y-10 md:grid-cols-4">
         <span
           aria-hidden
-          className="absolute top-[0.6rem] left-[0.6rem] h-[calc(100%-1.2rem)] w-px bg-white/10 md:left-0 md:h-px md:w-full"
+          className="absolute top-[0.6rem] left-[0.6rem] h-[calc(100%-1.2rem)] w-px bg-tint/10 md:left-0 md:h-px md:w-full"
         />
         <motion.span
           aria-hidden
@@ -226,7 +226,7 @@ function JourneyStages() {
         <motion.span
           aria-hidden
           style={{ scaleX: progress }}
-          className="absolute top-[0.6rem] left-0 hidden h-px w-full origin-left bg-gradient-to-r from-accent via-accent to-orange shadow-[0_0_12px_rgb(240_107_40/0.5)] md:block"
+          className="absolute top-[0.6rem] left-0 hidden h-px w-full origin-left bg-gradient-to-r from-accent via-accent to-orange shadow-[0_0_12px_rgb(var(--orange-rgb)/calc(0.5*var(--glow)))] md:block"
         />
 
         {JOURNEY_LEVELS.map((level, i) => (
@@ -272,15 +272,15 @@ function Stage({
     >
       <span
         aria-hidden
-        className="absolute top-0 left-0 flex size-[1.2rem] items-center justify-center rounded-full border border-white/20 bg-void md:relative"
+        className="absolute top-0 left-0 flex size-[1.2rem] items-center justify-center rounded-full border border-tint/20 bg-void md:relative"
       >
         <motion.span
           style={{ opacity: lit }}
           className={cn(
             "absolute -inset-px rounded-full border",
             isLast
-              ? "border-orange bg-orange-soft shadow-[0_0_16px_rgb(240_107_40/0.75)]"
-              : "border-accent bg-accent-soft shadow-[0_0_14px_rgb(44_143_227/0.7)]",
+              ? "border-orange bg-orange-soft shadow-[0_0_16px_rgb(var(--orange-rgb)/calc(0.75*var(--glow)))]"
+              : "border-accent bg-accent-soft shadow-[0_0_14px_rgb(var(--accent-rgb)/calc(0.7*var(--glow)))]",
           )}
         />
         <motion.span

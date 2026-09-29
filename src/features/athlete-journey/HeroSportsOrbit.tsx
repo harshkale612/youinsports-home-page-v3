@@ -160,11 +160,11 @@ export function SportChip({
       className={cn(
         "group flex cursor-pointer items-center gap-2.5 rounded-full border py-1.5 pr-4 pl-1.5 whitespace-nowrap backdrop-blur-md",
         "transition-[border-color,background-color,box-shadow] duration-300",
-        "hover:border-accent/60 hover:bg-[rgba(10,32,48,0.92)]",
+        "hover:border-accent/60 hover:bg-chip-hover",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
         active
-          ? "border-orange/70 bg-[rgba(8,28,42,0.94)] shadow-[0_0_36px_-4px_rgb(240_107_40/0.55)]"
-          : "border-white/[0.1] bg-[rgba(5,19,30,0.7)] shadow-[0_14px_40px_-18px_rgba(0,0,0,0.9)] data-[front=true]:border-white/[0.22]",
+          ? "border-orange/70 bg-chip-active shadow-[var(--shadow-chip-active)]"
+          : "border-tint/[0.1] bg-chip shadow-[var(--shadow-chip)] data-[front=true]:border-tint/[0.22]",
         className,
       )}
       style={style}
@@ -224,7 +224,7 @@ export function SportDetailCard({
       ref={ref}
       {...{ [ORBIT_UI_ATTR]: "" }}
       className={cn(
-        "rounded-2xl border border-orange/25 bg-[rgba(5,19,30,0.9)] p-5 shadow-[0_28px_80px_-28px_rgba(0,0,0,0.95)] backdrop-blur-2xl",
+        "rounded-2xl border border-orange/25 bg-popover p-5 shadow-[var(--shadow-popover)] backdrop-blur-2xl",
         className,
       )}
       data-globe-ignore
@@ -242,7 +242,7 @@ export function SportDetailCard({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="flex size-7 cursor-pointer items-center justify-center rounded-full border border-white/10 text-faint transition-colors hover:border-white/25 hover:text-fg"
+          className="flex size-7 cursor-pointer items-center justify-center rounded-full border border-tint/10 text-faint transition-colors hover:border-tint/25 hover:text-fg"
         >
           <X className="size-3.5" aria-hidden />
         </button>
@@ -259,7 +259,7 @@ export function SportDetailCard({
       </p>
 
       {shown.length > 0 && (
-        <div className="mt-4 border-t border-white/[0.08] pt-3">
+        <div className="mt-4 border-t border-tint/[0.08] pt-3">
           <p className="font-display text-[0.55rem] font-semibold tracking-[0.2em] text-faint uppercase">
             Strongest in
           </p>
@@ -267,7 +267,7 @@ export function SportDetailCard({
             {shown.map((country) => (
               <li
                 key={country.code}
-                className="flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2 py-1 text-[0.68rem] text-muted"
+                className="flex items-center gap-1.5 rounded-full bg-tint/[0.05] px-2 py-1 text-[0.68rem] text-muted"
               >
                 <span aria-hidden>{country.flag}</span>
                 {country.name}
@@ -539,7 +539,7 @@ export function HeroSportsOrbit({ onStart }: { onStart: () => void }) {
           <path
             d={arc(rx, ry, Math.PI, Math.PI * 2)}
             fill="none"
-            stroke="rgba(244,247,252,0.13)"
+            style={{ stroke: "var(--orbit-line)" }}
             strokeWidth={1}
             strokeDasharray="2 6"
           />
@@ -558,7 +558,7 @@ export function HeroSportsOrbit({ onStart }: { onStart: () => void }) {
             rx={rx * 1.14}
             ry={ry * 1.2}
             fill="none"
-            stroke="rgba(244,247,252,0.05)"
+            style={{ stroke: "var(--orbit-line-faint)" }}
             strokeWidth={1}
           />
         </g>
@@ -621,7 +621,7 @@ export function HeroSportsOrbit({ onStart }: { onStart: () => void }) {
             </p>
           </>
         ) : (
-          <div className="inline-flex items-center gap-2.5 rounded-full border border-white/[0.1] bg-[rgba(5,19,30,0.6)] py-2 pr-4 pl-2.5 backdrop-blur-md">
+          <div className="inline-flex items-center gap-2.5 rounded-full border border-tint/[0.1] bg-pill py-2 pr-4 pl-2.5 shadow-[var(--shadow-float)] backdrop-blur-md">
             <span className="relative flex size-5 items-center justify-center rounded-full bg-accent-soft text-accent">
               <span aria-hidden className="absolute inset-0 animate-pulse-ring rounded-full ring-1 ring-accent" />
               <MousePointerClick className="size-3" aria-hidden />

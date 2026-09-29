@@ -44,9 +44,9 @@ export function JourneyProgress({
         </p>
       </div>
 
-      <div className="relative mt-3 h-px w-full bg-white/12">
+      <div className="relative mt-3 h-px w-full bg-tint/12">
         <motion.div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-accent to-orange shadow-[0_0_10px_rgb(240_107_40/0.6)]"
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-accent to-orange shadow-[0_0_10px_rgb(var(--orange-rgb)/calc(0.6*var(--glow)))]"
           animate={{ width: `${progress * 100}%` }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         />

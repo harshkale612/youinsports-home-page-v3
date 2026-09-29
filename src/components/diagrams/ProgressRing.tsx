@@ -68,8 +68,8 @@ export function ProgressRing({
         >
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stopColor="#7cc0f5" />
-              <stop offset="1" stopColor="var(--brand-blue)" />
+              <stop offset="0" style={{ stopColor: "var(--reading-from)" }} />
+              <stop offset="1" style={{ stopColor: "var(--reading-to)" }} />
             </linearGradient>
           </defs>
           <circle
@@ -86,7 +86,7 @@ export function ProgressRing({
             fill="none"
             stroke="currentColor"
             strokeWidth={STROKE}
-            className="text-white/[0.08]"
+            className="text-tint/[0.08]"
           />
           <circle
             cx={SIZE / 2}
@@ -98,7 +98,7 @@ export function ProgressRing({
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={offset}
-            className="drop-shadow-[0_0_6px_rgb(44_143_227/0.8)]"
+            className="drop-shadow-[0_0_6px_rgb(var(--accent-rgb)/calc(0.8*var(--glow)))]"
           />
         </svg>
 

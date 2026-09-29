@@ -11,7 +11,7 @@ export function SportsRibbon() {
   return (
     <div
       aria-hidden
-      className="relative border-y border-white/[0.06] bg-[linear-gradient(90deg,rgb(240_107_40/0.04),rgb(44_143_227/0.05))] py-5 md:py-6"
+      className="relative border-y border-tint/[0.06] bg-[linear-gradient(90deg,rgb(240_107_40/0.04),rgb(44_143_227/0.05))] py-5 md:py-6"
     >
       <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
         <div className="flex w-max animate-marquee">

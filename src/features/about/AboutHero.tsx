@@ -190,7 +190,7 @@ export function AboutHero() {
               className="group inline-flex items-center gap-2 font-display text-[0.66rem] font-semibold tracking-[0.2em] text-muted uppercase transition-colors duration-300 hover:text-fg"
             >
               <span
-                className="size-1.5 rounded-full bg-accent shadow-[0_0_8px_var(--color-accent)] transition-transform duration-300 group-hover:scale-125"
+                className="size-1.5 rounded-full bg-accent shadow-[0_0_8px_rgb(var(--accent-rgb)/var(--glow))] transition-transform duration-300 group-hover:scale-125"
                 aria-hidden
               />
               Start your journey
@@ -240,7 +240,7 @@ export function AboutHero() {
 function HeroBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-      <div className="absolute inset-0 bg-[radial-gradient(rgb(170_205_235/0.13)_1px,transparent_1px)] [background-size:30px_30px] [mask-image:radial-gradient(ellipse_70%_60%_at_62%_45%,black,transparent_75%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(var(--dot-field)_1px,transparent_1px)] [background-size:30px_30px] [mask-image:radial-gradient(ellipse_70%_60%_at_62%_45%,black,transparent_75%)]" />
       <div className="absolute top-1/4 -left-48 size-[44rem] animate-drift rounded-full bg-[radial-gradient(circle,rgb(240_107_40/0.13),transparent_62%)]" />
       <div className="absolute -top-48 -right-40 size-[48rem] animate-drift rounded-full bg-[radial-gradient(circle,rgb(44_143_227/0.13),transparent_62%)] [animation-delay:-9s]" />
       <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-void" />

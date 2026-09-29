@@ -41,7 +41,7 @@ export function AboutCta() {
       >
         <div className="absolute top-[calc(100%-9rem)] left-1/2 h-[36rem] w-[max(170%,62rem)] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(44_143_227/0.16),transparent)]" />
         <div className="absolute top-[calc(100%-9rem)] left-1/2 h-[20rem] w-[max(120%,44rem)] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgb(240_107_40/0.42),rgb(240_107_40/0.1)_55%,transparent)]" />
-        <div className="absolute top-[calc(100%-9rem)] left-1/2 aspect-square w-[max(160%,40rem)] -translate-x-1/2 rounded-full bg-void shadow-[inset_0_1px_0_rgb(255_138_76/0.75)]" />
+        <div className="absolute top-[calc(100%-9rem)] left-1/2 aspect-square w-[max(160%,40rem)] -translate-x-1/2 rounded-full bg-planet shadow-[inset_0_1px_0_rgb(255_138_76/0.75)]" />
       </motion.div>
 
       <Container className="relative text-center">

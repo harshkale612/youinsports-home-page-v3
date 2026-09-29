@@ -43,6 +43,13 @@ const LEVELS = 5;
  *  rebuilds rather than one per frame. */
 const RADIUS_EPSILON = 6;
 
+/**
+ * The page backgrounds this canvas has to meet without a seam: `--color-void`
+ * in each theme. Kept in step with `globals.css` by hand.
+ */
+const SPACE_RGB = [3, 11, 18] as const;
+const PAPER_RGB = [246, 244, 239] as const;
+
 const DEG = Math.PI / 180;
 const SIN_TILT = Math.sin(TILT_DEG * DEG);
 const COS_TILT = Math.cos(TILT_DEG * DEG);
@@ -83,6 +90,18 @@ export type FlatEarthFrame = {
   delta: number;
   /** Suppressed under `prefers-reduced-motion`. */
   animate: boolean;
+  /**
+   * How far into daylight the space around the planet is: 0 is the dark
+   * theme's starfield, 1 the light theme's paper. Fractional while the theme
+   * switches. The planet itself stays night-side at every value.
+   */
+  paper?: number;
+  /**
+   * How day-side the planet itself is: 0 is the night-side planet (dark ocean,
+   * lit dots), 1 a brand-blue halftone on paper. Only ever non-zero in the
+   * light theme, for acts where copy runs across the globe.
+   */
+  day?: number;
 };
 
 export type FlatEarthMarkerPoint = {
@@ -337,7 +356,7 @@ export class FlatEarthRenderer {
     this.drawRain(ctx, frame);
     this.drawAtmosphere(ctx, frame);
     this.drawOcean(ctx, frame);
-    this.drawGraticule(ctx, cx, cy, radius, rotationDeg);
+    this.drawGraticule(ctx, cx, cy, radius, rotationDeg, frame.day ?? 0);
     this.drawDots(ctx, frame);
     this.drawLimb(ctx, frame);
     this.drawMarkers(ctx, frame);
@@ -360,33 +379,63 @@ export class FlatEarthRenderer {
       return;
     }
 
+    const paper = frame.paper ?? 0;
+    const night = 1 - paper;
+
     // The page background is the same material as the space behind the planet,
     // so this layer paints the void itself rather than a panel over it.
-    ctx.fillStyle = "#030b12";
+    ctx.fillStyle =
+      paper === 0
+        ? "#030b12"
+        : `rgb(${mix(SPACE_RGB[0], PAPER_RGB[0], paper)}, ${mix(SPACE_RGB[1], PAPER_RGB[1], paper)}, ${mix(SPACE_RGB[2], PAPER_RGB[2], paper)})`;
     ctx.fillRect(0, 0, this.width, this.height);
 
-    for (const star of this.stars) {
-      const twinkle = frame.animate
-        ? 0.72 + 0.28 * Math.sin(frame.time * 0.0009 + star.phase)
-        : 1;
-      ctx.fillStyle = `rgba(214, 228, 255, ${star.alpha * twinkle})`;
-      ctx.beginPath();
-      ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
-      ctx.fill();
+    if (night > 0) {
+      for (const star of this.stars) {
+        const twinkle = frame.animate
+          ? 0.72 + 0.28 * Math.sin(frame.time * 0.0009 + star.phase)
+          : 1;
+        ctx.fillStyle = `rgba(214, 228, 255, ${star.alpha * twinkle * night})`;
+        ctx.beginPath();
+        ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      const wash = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, radius * 2.6);
+      // Brand navy, the logo's "SPORTS", as the light the planet sits in.
+      wash.addColorStop(0, `rgba(10, 47, 66, ${0.6 * night})`);
+      wash.addColorStop(1, "rgba(3, 11, 18, 0)");
+      ctx.fillStyle = wash;
+      ctx.fillRect(0, 0, this.width, this.height);
     }
 
-    const wash = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, radius * 2.6);
-    // Brand navy, the logo's "SPORTS", as the light the planet sits in.
-    wash.addColorStop(0, "rgba(10, 47, 66, 0.6)");
-    wash.addColorStop(1, "rgba(3, 11, 18, 0)");
-    ctx.fillStyle = wash;
-    ctx.fillRect(0, 0, this.width, this.height);
+    if (paper > 0) {
+      // Daylight: no stars, just a cool haze of sky around the planet, so the
+      // dark disc reads as a world in air rather than a hole in the page…
+      const haze = ctx.createRadialGradient(cx, cy, radius * 0.9, cx, cy, radius * 2.3);
+      haze.addColorStop(0, `rgba(150, 188, 222, ${0.34 * paper})`);
+      haze.addColorStop(0.45, `rgba(172, 202, 228, ${0.12 * paper})`);
+      haze.addColorStop(1, "rgba(172, 202, 228, 0)");
+      ctx.fillStyle = haze;
+      ctx.fillRect(0, 0, this.width, this.height);
+
+      // …and a close, soft shade hugging the limb, which is what gives the
+      // edge its weight against paper.
+      const shade = ctx.createRadialGradient(cx, cy, radius * 0.97, cx, cy, radius * 1.16);
+      shade.addColorStop(0, `rgba(10, 30, 46, ${0.2 * paper * (1 - (frame.day ?? 0))})`);
+      shade.addColorStop(1, "rgba(10, 30, 46, 0)");
+      ctx.fillStyle = shade;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius * 1.16, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   private drawRain(ctx: CanvasRenderingContext2D, frame: FlatEarthFrame) {
     if (!frame.animate || this.rain.length === 0) return;
 
     const cell = 13 * this.dpr;
+    const paper = frame.paper ?? 0;
     ctx.font = `${10 * this.dpr}px ui-monospace, monospace`;
     ctx.textBaseline = "top";
 
@@ -397,16 +446,20 @@ export class FlatEarthRenderer {
       for (let i = 0; i < column.glyphs.length; i++) {
         const y = column.y + i * cell;
         if (y < -cell || y > this.height) continue;
-        // Brightest at the head of the run, fading back up the column.
+        // Brightest at the head of the run, fading back up the column. In
+        // daylight the same code runs in ink — deep navy, and much fainter,
+        // since dark marks on paper carry further than light ones in space.
         const fade = (i + 1) / column.glyphs.length;
-        ctx.fillStyle = `hsl(${PLANET_HUE} 90% 66% / ${column.alpha * fade})`;
+        ctx.fillStyle = `hsl(${PLANET_HUE} ${90 - 45 * paper}% ${66 - 34 * paper}% / ${column.alpha * fade * (1 - 0.62 * paper)})`;
         ctx.fillText(column.glyphs[i], column.x, y);
       }
     }
   }
 
   private drawAtmosphere(ctx: CanvasRenderingContext2D, frame: FlatEarthFrame) {
-    const { cx, cy, radius, glow } = frame;
+    const { cx, cy, radius } = frame;
+    // Light scatters less against paper than it blooms against space.
+    const glow = frame.glow * (1 - 0.35 * (frame.paper ?? 0));
     const outer = radius * 1.42;
 
     const atmosphere = ctx.createRadialGradient(cx, cy, radius * 0.9, cx, cy, outer);
@@ -435,6 +488,17 @@ export class FlatEarthRenderer {
 
   private drawOcean(ctx: CanvasRenderingContext2D, frame: FlatEarthFrame) {
     const { cx, cy, radius } = frame;
+    const day = frame.day ?? 0;
+
+    // The night ocean is very slightly translucent, which over space is
+    // invisible and over paper would grey it. Its own night goes under it.
+    const seal = (frame.paper ?? 0) * (1 - day);
+    if (seal > 0) {
+      ctx.fillStyle = `rgba(3, 11, 18, ${seal})`;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
     const ocean = ctx.createRadialGradient(
       cx - radius * 0.3,
@@ -444,9 +508,11 @@ export class FlatEarthRenderer {
       cy,
       radius,
     );
-    ocean.addColorStop(0, "rgba(16, 64, 104, 0.95)");
-    ocean.addColorStop(0.62, "rgba(8, 36, 58, 0.96)");
-    ocean.addColorStop(1, "rgba(4, 16, 28, 0.98)");
+    // Night: deep water. Day: the faintest cool wash, just enough to give the
+    // disc a body against the paper.
+    ocean.addColorStop(0, day === 0 ? "rgba(16, 64, 104, 0.95)" : rgba([16, 64, 104, 0.95], [238, 244, 250, 0.7], day));
+    ocean.addColorStop(0.62, day === 0 ? "rgba(8, 36, 58, 0.96)" : rgba([8, 36, 58, 0.96], [228, 237, 246, 0.72], day));
+    ocean.addColorStop(1, day === 0 ? "rgba(4, 16, 28, 0.98)" : rgba([4, 16, 28, 0.98], [212, 226, 240, 0.78], day));
     ctx.fillStyle = ocean;
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
@@ -460,9 +526,10 @@ export class FlatEarthRenderer {
     cy: number,
     radius: number,
     rotation: number,
+    day: number,
   ) {
     ctx.lineWidth = Math.max(1, 0.7 * this.dpr);
-    ctx.strokeStyle = `hsl(${PLANET_HUE} 90% 62% / 0.13)`;
+    ctx.strokeStyle = hsl(PLANET_HUE, 90, 62, 0.13, [208, 50, 38, 0.14], day);
 
     const trace = (lat: number | null, lng: number | null) => {
       let drawing = false;
@@ -527,11 +594,14 @@ export class FlatEarthRenderer {
       path.rect(x, y, size, size);
     }
 
+    const day = frame.day ?? 0;
     for (let i = 0; i < LEVELS; i++) {
       const shade = (i + 1) / LEVELS;
-      ctx.fillStyle = `hsl(196 100% ${52 + shade * 26}% / ${0.2 + shade * 0.72})`;
+      // Night: land lit brightest at the centre. Day: land inked in brand
+      // blue, deepest at the centre — the same halftone, printed.
+      ctx.fillStyle = hsl(196, 100, 52 + shade * 26, 0.2 + shade * 0.72, [208, 72, 54 - shade * 14, 0.22 + shade * 0.6], day);
       ctx.fill(this.landPaths[i]);
-      ctx.fillStyle = `hsl(205 90% 60% / ${0.03 + shade * 0.1})`;
+      ctx.fillStyle = hsl(205, 90, 60, 0.03 + shade * 0.1, [208, 60, 46, 0.03 + shade * 0.07], day);
       ctx.fill(this.oceanPaths[i]);
     }
   }
@@ -539,10 +609,11 @@ export class FlatEarthRenderer {
   private drawLimb(ctx: CanvasRenderingContext2D, frame: FlatEarthFrame) {
     // Blue on the lit upper-left, warming to orange where the sun sits.
     const { cx, cy, radius } = frame;
+    const day = frame.day ?? 0;
     const limb = ctx.createLinearGradient(cx - radius, cy - radius, cx + radius, cy + radius);
-    limb.addColorStop(0, `hsl(${PLANET_HUE} 100% 72% / ${0.4 * frame.glow})`);
-    limb.addColorStop(0.55, `hsl(${PLANET_HUE} 100% 72% / ${0.22 * frame.glow})`);
-    limb.addColorStop(1, `rgba(255, 138, 76, ${0.75 * frame.glow})`);
+    limb.addColorStop(0, hsl(PLANET_HUE, 100, 72, 0.4 * frame.glow, [208, 55, 40, 0.3], day));
+    limb.addColorStop(0.55, hsl(PLANET_HUE, 100, 72, 0.22 * frame.glow, [208, 55, 40, 0.16], day));
+    limb.addColorStop(1, day === 0 ? `rgba(255, 138, 76, ${0.75 * frame.glow})` : rgba([255, 138, 76, 0.75 * frame.glow], [226, 86, 28, 0.6], day));
     ctx.strokeStyle = limb;
     ctx.lineWidth = Math.max(1, 1.3 * this.dpr);
     ctx.beginPath();
@@ -552,6 +623,7 @@ export class FlatEarthRenderer {
 
   private drawMarkers(ctx: CanvasRenderingContext2D, frame: FlatEarthFrame) {
     const { cx, cy, radius, rotationDeg, markerHue: hue, time } = frame;
+    const day = frame.day ?? 0;
     const dpr = this.dpr;
     const pulse = frame.animate ? (Math.sin(time * 0.0028) + 1) / 2 : 0.5;
 
@@ -582,28 +654,55 @@ export class FlatEarthRenderer {
 
       const haloRadius = 16 * dpr * scale;
       const halo = ctx.createRadialGradient(x, y, 0, x, y, haloRadius);
-      halo.addColorStop(0, `hsl(${hue} 100% 70% / ${0.42 * strength})`);
-      halo.addColorStop(1, `hsl(${hue} 100% 70% / 0)`);
+      // By day a marker is a solid brand-coloured pin; a pale core would
+      // vanish into the paper.
+      halo.addColorStop(0, hsl(hue, 100, 70, 0.42 * strength, [hue, 90, 52, 0.34 * strength], day));
+      halo.addColorStop(1, hsl(hue, 100, 70, 0, [hue, 90, 52, 0], day));
       ctx.fillStyle = halo;
       ctx.beginPath();
       ctx.arc(x, y, haloRadius, 0, Math.PI * 2);
       ctx.fill();
 
       const core = (marker.active ? 3 : 2.1) * dpr * scale;
-      ctx.fillStyle = `hsl(${hue} 100% ${marker.active ? 92 : 82}% / ${strength})`;
+      ctx.fillStyle = hsl(hue, 100, marker.active ? 92 : 82, strength, [hue, 85, marker.active ? 38 : 46, strength], day);
       ctx.beginPath();
       ctx.arc(x, y, core, 0, Math.PI * 2);
       ctx.fill();
 
       if (!marker.emphasis && !marker.active) continue;
 
-      ctx.strokeStyle = `hsl(${hue} 100% 74% / ${(1 - pulse) * 0.5 * strength})`;
+      ctx.strokeStyle = hsl(hue, 100, 74, (1 - pulse) * 0.5 * strength, [hue, 85, 48, (1 - pulse) * 0.5 * strength], day);
       ctx.lineWidth = Math.max(1, dpr);
       ctx.beginPath();
       ctx.arc(x, y, (3 + pulse * 9) * dpr * scale, 0, Math.PI * 2);
       ctx.stroke();
     }
   }
+}
+
+/** One channel of a blend between two colours, rounded for a CSS string. */
+function mix(from: number, to: number, t: number): number {
+  return Math.round(from + (to - from) * t);
+}
+
+type Hsla = readonly [hue: number, saturation: number, lightness: number, alpha: number];
+type Rgba = readonly [r: number, g: number, b: number, a: number];
+
+/**
+ * An `hsl()` colour given as its night value, eased toward a day value by `t`.
+ * At `t = 0` it prints exactly what the night-only renderer printed.
+ */
+function hsl(h: number, s: number, l: number, a: number, dayValue: Hsla, t: number): string {
+  if (t === 0) return `hsl(${h} ${s}% ${l}% / ${a})`;
+  const [dh, ds, dl, da] = dayValue;
+  const at = (from: number, to: number) => from + (to - from) * t;
+  return `hsl(${at(h, dh)} ${at(s, ds)}% ${at(l, dl)}% / ${at(a, da)})`;
+}
+
+/** An `rgba()` colour blended from night to day by `t`. */
+function rgba(night: Rgba, day: Rgba, t: number): string {
+  const alpha = night[3] + (day[3] - night[3]) * t;
+  return `rgba(${mix(night[0], day[0], t)}, ${mix(night[1], day[1], t)}, ${mix(night[2], day[2], t)}, ${alpha})`;
 }
 
 /**

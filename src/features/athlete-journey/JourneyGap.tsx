@@ -100,7 +100,7 @@ export function JourneyGap({ journey }: { journey: AthleteJourney }) {
             ))}
           </div>
 
-          <p className="mt-9 border-t border-white/[0.08] pt-5 text-[0.75rem] leading-relaxed text-faint">
+          <p className="mt-9 border-t border-tint/[0.08] pt-5 text-[0.75rem] leading-relaxed text-faint">
             The second figure on each bar is what this dimension typically looks like at the
             next level. Illustrative reference points for the demo — not a score, a ranking,
             or a comparison against other athletes.

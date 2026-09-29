@@ -28,7 +28,7 @@ export function JourneyPath({
 
   return (
     <ol className={cn("relative flex flex-col pl-1", className)} aria-label="Your position on the pathway">
-      <div aria-hidden className="absolute top-3 bottom-3 left-[0.6rem] w-px bg-white/12" />
+      <div aria-hidden className="absolute top-3 bottom-3 left-[0.6rem] w-px bg-tint/12" />
 
       <motion.div
         aria-hidden
@@ -59,18 +59,18 @@ export function JourneyPath({
               className={cn(
                 "relative z-10 flex size-[1.2rem] shrink-0 items-center justify-center rounded-full border",
                 isCurrent
-                  ? "border-accent bg-accent shadow-[0_0_14px_rgb(44_143_227/0.8)]"
+                  ? "border-accent bg-accent shadow-[0_0_14px_rgb(var(--accent-rgb)/calc(0.8*var(--glow)))]"
                   : isTarget
-                    ? "border-orange bg-void shadow-[0_0_12px_rgb(240_107_40/0.55)]"
+                    ? "border-orange bg-void shadow-[0_0_12px_rgb(var(--orange-rgb)/calc(0.55*var(--glow)))]"
                     : isReached
                       ? "border-accent/45 bg-accent/20"
-                      : "border-white/18 bg-void",
+                      : "border-tint/18 bg-void",
               )}
             >
               <span
                 className={cn(
                   "size-1 rounded-full",
-                  isCurrent ? "bg-white" : isTarget ? "bg-orange" : isReached ? "bg-accent" : "bg-white/30",
+                  isCurrent ? "bg-white" : isTarget ? "bg-orange" : isReached ? "bg-accent" : "bg-tint/30",
                 )}
               />
             </span>

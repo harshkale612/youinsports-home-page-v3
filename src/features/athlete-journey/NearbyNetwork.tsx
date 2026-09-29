@@ -53,7 +53,7 @@ export function NearbyNetwork({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-12% 0px" }}
             transition={{ duration: 0.45, ease, delay: i * 0.06 }}
-            className="border-b border-white/[0.06] last:border-0"
+            className="border-b border-tint/[0.06] last:border-0"
           >
             <button
               type="button"

@@ -77,13 +77,13 @@ export function TeamMemberCard({ member, index }: { member: TeamMember; index: n
         className="group relative h-full rounded-[1.4rem] p-px"
       >
         {/* The border: a faint hairline at rest, the logo's orange-to-blue on hover. */}
-        <span aria-hidden className="absolute inset-0 rounded-[inherit] bg-white/[0.08]" />
+        <span aria-hidden className="absolute inset-0 rounded-[inherit] bg-tint/[0.08]" />
         <span
           aria-hidden
           className="absolute inset-0 rounded-[inherit] bg-[linear-gradient(150deg,rgb(240_107_40/0.9),rgb(150_200_240/0.1)_45%,rgb(150_200_240/0.1)_60%,rgb(44_143_227/0.9))] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         />
 
-        <article className="relative h-full overflow-hidden rounded-[calc(1.4rem-1px)] bg-bg shadow-[0_30px_70px_-40px_rgb(0_0_0/0.95)] transition-shadow duration-500 group-hover:shadow-[0_40px_90px_-40px_rgb(240_107_40/0.45)]">
+        <article className="relative h-full overflow-hidden rounded-[calc(1.4rem-1px)] bg-bg shadow-[var(--shadow-card)] transition-shadow duration-500 group-hover:shadow-[var(--shadow-card-hover)]">
           <div className="@container relative aspect-square overflow-hidden sm:aspect-4/5">
             {member.photo ? (
               <Image
@@ -153,14 +153,14 @@ function Monogram({ name, glow }: { name: string; glow: (typeof GLOWS)[number] }
       {/* Pitch markings in CSS rather than a fixed drawing, so they fit both
           portrait shapes: the boxes at each end, the halfway line and the
           centre circle through the initials. */}
-      <span className="absolute top-0 left-1/2 h-[13.6%] w-[48%] -translate-x-1/2 border-x border-b border-white/[0.07]" />
-      <span className="absolute top-0 left-1/2 h-[4.8%] w-[22%] -translate-x-1/2 border-x border-b border-white/[0.07]" />
-      <span className="absolute bottom-0 left-1/2 h-[13.6%] w-[48%] -translate-x-1/2 border-x border-t border-white/[0.07]" />
-      <span className="absolute bottom-0 left-1/2 h-[4.8%] w-[22%] -translate-x-1/2 border-x border-t border-white/[0.07]" />
-      <span className="absolute inset-x-0 top-[var(--pitch-y)] h-px bg-white/[0.07]" />
-      <span className="absolute top-[var(--pitch-y)] left-1/2 size-[40cqw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.07]" />
+      <span className="absolute top-0 left-1/2 h-[13.6%] w-[48%] -translate-x-1/2 border-x border-b border-tint/[0.07]" />
+      <span className="absolute top-0 left-1/2 h-[4.8%] w-[22%] -translate-x-1/2 border-x border-b border-tint/[0.07]" />
+      <span className="absolute bottom-0 left-1/2 h-[13.6%] w-[48%] -translate-x-1/2 border-x border-t border-tint/[0.07]" />
+      <span className="absolute bottom-0 left-1/2 h-[4.8%] w-[22%] -translate-x-1/2 border-x border-t border-tint/[0.07]" />
+      <span className="absolute inset-x-0 top-[var(--pitch-y)] h-px bg-tint/[0.07]" />
+      <span className="absolute top-[var(--pitch-y)] left-1/2 size-[40cqw] -translate-x-1/2 -translate-y-1/2 rounded-full border border-tint/[0.07]" />
 
-      <span className="absolute top-[var(--pitch-y)] left-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[22cqw] leading-none font-semibold tracking-[-0.04em] text-white/90 [text-shadow:0_8px_40px_rgb(0_0_0/0.45)] transition-[scale] duration-700 ease-out group-hover:scale-110">
+      <span className="absolute top-[var(--pitch-y)] left-1/2 -translate-x-1/2 -translate-y-1/2 font-display text-[22cqw] leading-none font-semibold tracking-[-0.04em] text-tint/90 [text-shadow:var(--monogram-shadow)] transition-[scale] duration-700 ease-out group-hover:scale-110">
         {initials(name)}
       </span>
     </div>

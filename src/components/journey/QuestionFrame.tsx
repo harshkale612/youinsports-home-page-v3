@@ -38,7 +38,7 @@ export function QuestionFrame({
           transition={{ duration: 0.5, ease }}
           className="inline-flex items-center gap-2.5 rounded-full border border-orange/30 bg-orange-soft py-1.5 pr-3.5 pl-2.5 font-display text-[0.66rem] font-semibold tracking-[0.2em] text-orange-strong uppercase"
         >
-          <span className="size-1.5 rounded-full bg-orange shadow-[0_0_8px_var(--color-orange)]" aria-hidden />
+          <span className="size-1.5 rounded-full bg-orange shadow-[0_0_8px_rgb(var(--orange-rgb)/var(--glow))]" aria-hidden />
           {acknowledgement}
         </motion.p>
       )}

@@ -95,7 +95,7 @@ export function ComingSoonHeadline({
               delay: delay + LETTERS.length * STAGGER + 1.1,
             }}
           >
-            <span className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-r from-transparent via-white/90 to-transparent" />
+            <span className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-r from-transparent via-[var(--spark)] to-transparent" />
           </motion.span>
         )}
       </motion.span>

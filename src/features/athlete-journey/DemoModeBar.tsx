@@ -33,7 +33,7 @@ export function DemoModeBar({ onLoad }: { onLoad: () => void }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.97 }}
             transition={{ duration: 0.28, ease }}
-            className="pointer-events-auto w-[17.5rem] rounded-2xl border border-white/10 bg-[rgba(6,22,34,0.92)] p-4 backdrop-blur-xl"
+            className="pointer-events-auto w-[17.5rem] rounded-2xl border border-tint/10 bg-panel p-4 shadow-[var(--shadow-float)] backdrop-blur-xl"
           >
             <div className="flex items-center justify-between gap-3">
               <p className="font-display text-[0.55rem] font-semibold tracking-[0.22em] text-faint uppercase">
@@ -64,7 +64,7 @@ export function DemoModeBar({ onLoad }: { onLoad: () => void }) {
                       "w-full rounded-lg border px-3 py-2.5 text-left transition-colors duration-250",
                       activeId === persona.id
                         ? "border-accent bg-accent-soft"
-                        : "border-white/10 hover:border-white/28 hover:bg-white/[0.04]",
+                        : "border-tint/10 hover:border-tint/28 hover:bg-tint/[0.04]",
                     )}
                   >
                     <span className="block font-display text-[0.78rem] font-semibold tracking-tight text-fg">
@@ -85,7 +85,7 @@ export function DemoModeBar({ onLoad }: { onLoad: () => void }) {
                 trackEvent("journey_reset");
                 window.scrollTo({ top: 0, behavior: "smooth" });
               }}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 py-2 font-display text-[0.58rem] font-semibold tracking-[0.18em] text-muted uppercase transition-colors hover:border-white/28 hover:text-fg"
+              className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border border-tint/10 py-2 font-display text-[0.58rem] font-semibold tracking-[0.18em] text-muted uppercase transition-colors hover:border-tint/28 hover:text-fg"
             >
               <RotateCcw className="size-3" aria-hidden />
               Start over
@@ -98,7 +98,7 @@ export function DemoModeBar({ onLoad }: { onLoad: () => void }) {
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/12 bg-[rgba(6,22,34,0.82)] px-4 py-2.5 font-display text-[0.55rem] font-semibold tracking-[0.2em] text-muted uppercase backdrop-blur-xl transition-colors hover:border-accent/60 hover:text-fg"
+        className="pointer-events-auto flex items-center gap-2 rounded-full border border-tint/12 bg-control px-4 py-2.5 font-display text-[0.55rem] font-semibold tracking-[0.2em] text-muted uppercase shadow-[var(--shadow-float)] backdrop-blur-xl transition-colors hover:border-accent/60 hover:text-fg"
       >
         <Play className="size-3" aria-hidden />
         Demo mode

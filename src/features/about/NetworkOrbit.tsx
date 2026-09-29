@@ -108,8 +108,8 @@ export function NetworkOrbit({ className }: { className?: string }) {
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           className="absolute inset-0 size-full animate-orbit [animation-direction:reverse] [animation-duration:160s]"
         >
-          <circle cx={CENTRE} cy={CENTRE} r={190} fill="none" stroke="rgb(170 205 235 / 0.07)" />
-          <circle cx={CENTRE} cy={CENTRE} r={88} fill="none" stroke="rgb(170 205 235 / 0.07)" />
+          <circle cx={CENTRE} cy={CENTRE} r={190} fill="none" style={{ stroke: "var(--line-faint)" }} />
+          <circle cx={CENTRE} cy={CENTRE} r={88} fill="none" style={{ stroke: "var(--line-faint)" }} />
           {SATELLITES.map((dot) => (
             <circle
               key={`${dot.x}-${dot.y}`}
@@ -163,7 +163,7 @@ export function NetworkOrbit({ className }: { className?: string }) {
               cy={CENTRE}
               r={RADIUS}
               fill="none"
-              stroke="rgb(170 205 235 / 0.16)"
+              style={{ stroke: "var(--line)" }}
               strokeDasharray="1.5 7"
               strokeLinecap="round"
             />
@@ -175,7 +175,7 @@ export function NetworkOrbit({ className }: { className?: string }) {
                   y1={CENTRE}
                   x2={node.x}
                   y2={node.y}
-                  stroke="rgb(170 205 235 / 0.16)"
+                  style={{ stroke: "var(--line)" }}
                   strokeWidth={1}
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
@@ -203,7 +203,7 @@ export function NetworkOrbit({ className }: { className?: string }) {
               <g key={active}>
                 {[
                   { r: 10, fill: "url(#orbit-pulse-glow)" },
-                  { r: 2.4, fill: "#fff4ec" },
+                  { r: 2.4, fill: "var(--pulse-core)" },
                 ].map((dot) => (
                   <motion.circle
                     key={dot.r}
@@ -245,9 +245,11 @@ export function NetworkOrbit({ className }: { className?: string }) {
         </div>
       </motion.div>
 
-      {/* The athlete. */}
+      {/* The athlete. Night-side in both themes, like the homepage planet —
+          the one dark, lit object in a daylight diagram. */}
       <div
         aria-hidden
+        data-theme="dark"
         className="absolute top-1/2 left-1/2 size-[27%] -translate-x-1/2 -translate-y-1/2"
       >
         <motion.div
@@ -296,8 +298,8 @@ function OrbitChip({ node, active }: { node: OrbitNode; active: boolean }) {
         "flex items-center gap-2 rounded-full border py-1 pr-3 pl-1 whitespace-nowrap backdrop-blur-md sm:gap-2.5 sm:py-1.5 sm:pr-4 sm:pl-1.5",
         "transition-[border-color,background-color,box-shadow] duration-500",
         active
-          ? "border-orange/70 bg-[rgba(8,28,42,0.94)] shadow-[0_0_36px_-4px_rgb(240_107_40/0.55)]"
-          : "border-white/[0.1] bg-[rgba(5,19,30,0.72)] shadow-[0_14px_40px_-18px_rgba(0,0,0,0.9)]",
+          ? "border-orange/70 bg-chip-active shadow-[var(--shadow-chip-active)]"
+          : "border-tint/[0.1] bg-orbit-chip shadow-[var(--shadow-chip)]",
       )}
     >
       <span

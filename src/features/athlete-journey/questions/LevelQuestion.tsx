@@ -98,7 +98,7 @@ export function LevelQuestion({
                   ? "border-accent bg-accent-soft"
                   : isBelow
                     ? "border-accent/30 bg-accent/[0.06] hover:border-accent/55 hover:bg-accent/[0.1]"
-                    : "border-white/12 bg-white/[0.025] hover:border-white/30 hover:bg-white/[0.05]",
+                    : "border-tint/12 bg-rung shadow-[var(--shadow-tile)] hover:border-tint/30 hover:bg-rung-hover hover:shadow-[var(--shadow-tile-hover)]",
               )}
             >
               {/* The rung indicator — the one thing this question keeps that a
@@ -112,13 +112,13 @@ export function LevelQuestion({
                     ? "border-accent bg-accent"
                     : isBelow
                       ? "border-accent/50 bg-accent/25"
-                      : "border-white/20 bg-void group-hover:border-white/40",
+                      : "border-tint/20 bg-void group-hover:border-tint/40",
                 )}
               >
                 <span
                   className={cn(
                     "size-1.5 rounded-full transition-colors duration-300",
-                    isSelected ? "bg-white" : isBelow ? "bg-accent" : "bg-white/35",
+                    isSelected ? "bg-white" : isBelow ? "bg-accent" : "bg-tint/35",
                   )}
                 />
                 {isSelected && (
@@ -146,7 +146,7 @@ export function LevelQuestion({
                 aria-hidden
                 className={cn(
                   "flex size-4 shrink-0 items-center justify-center rounded-full border transition-all duration-300",
-                  isSelected ? "border-accent bg-accent" : "border-white/20",
+                  isSelected ? "border-accent bg-accent" : "border-tint/20",
                 )}
               >
                 {isSelected && <Check className="size-2.5 text-white" strokeWidth={3} />}

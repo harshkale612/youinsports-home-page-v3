@@ -2,11 +2,46 @@
 
 /*
  * YouInSports — global sports network.
- * Palette is deep-space first: the page background has to read as the same
- * material as the space behind the Earth, so the WebGL canvas can sit behind
- * every section without a visible seam.
+ *
+ * Two themes, one brand. Dark is deep-space first: the page background has to
+ * read as the same material as the space behind the Earth, so the globe's
+ * canvas can sit behind every section without a visible seam. Light is the
+ * same product in daylight: warm paper, deep navy-charcoal type, the logo's
+ * orange used sparingly — and the Earth kept dark, so it becomes the one
+ * cinematic object on an open page.
+ *
+ * Components only ever ask for a role (`text-muted`, `bg-choice`,
+ * `shadow-[var(--shadow-popover)]`); the two blocks below decide what each
+ * role looks like. The theme lives on `<html data-theme>`, set before first
+ * paint by the script in the root layout. Any element can pin a subtree to
+ * one theme with its own `data-theme` — the footer does, so the page always
+ * ends on the dark horizon.
  */
+
+/* Brand constants, sampled from the YouInSports logo. The same in both themes. */
 :root {
+  --brand-orange: #f06b28;
+  --brand-blue: #2c8fe3;
+  /* The logo's "SPORTS". On the dark theme it is a surface tint and the ink on
+     orange, never body text, because it has no contrast there. */
+  --brand-navy: #0a2f42;
+
+  /* The planet on the About and coming-soon horizons stays night-side in both
+     themes, and runs straight into the (always dark) footer below it. */
+  --color-planet: #030b12;
+
+  --color-cyan: hsl(186 86% 62%);
+
+  /* Fixed rhythm for section padding so the scroll narrative stays even. */
+  --section-y: clamp(6rem, 12vh, 10rem);
+}
+
+/* -- Dark ------------------------------------------------------------- */
+
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
   /* Navy-black, not neutral black: every dark surface carries a little of the
      logo's navy, so the whole page reads as one brand material. The globe's
      canvas paints the same `--color-void`, so sections sit over it seamlessly. */
@@ -21,14 +56,10 @@
   --color-faint: #5f7789;
   --color-border: rgba(170, 205, 235, 0.1);
   --color-border-strong: rgba(170, 205, 235, 0.2);
+  /* The theme's contrast ink, for hairlines, tracks and washes: `border-tint/10`
+     is a white hairline here and a charcoal one in daylight. */
+  --tint: #fff;
 
-  /* Brand palette, sampled from the YouInSports logo. Fixed on purpose: the
-     page no longer retints per sport, so these read the same everywhere.
-     Navy is the logo's "SPORTS"; on this dark page it is a surface tint and
-     the ink on orange, never body text, because it has no contrast here. */
-  --brand-orange: #f06b28;
-  --brand-blue: #2c8fe3;
-  --brand-navy: #0a2f42;
   /* Text on orange fills. Navy on orange is the logo's own pairing, and it
      clears AA where white on this orange does not. */
   --color-ink: #041a26;
@@ -47,14 +78,217 @@
   --color-orange-soft: rgb(240 107 40 / 0.14);
   --color-orange-line: rgb(240 107 40 / 0.42);
 
-  --color-cyan: hsl(186 86% 62%);
+  /* The wordmark: "Sports" takes the text colour, because the logo's navy has
+     no contrast on this page. */
+  --wordmark-you: var(--color-orange);
+  --wordmark-in: var(--color-accent);
+  --wordmark-sports: var(--color-text);
+
+  /* Glow. Channels plus a strength, so a glow can be written once
+     (`rgb(var(--accent-rgb) / calc(0.8 * var(--glow)))`) and dim itself in
+     daylight, where light doesn't bloom. */
+  --glow: 1;
+  --accent-rgb: 44 143 227;
+  --orange-rgb: 240 107 40;
 
   /* Floating glass over the globe — navy-tinted so panels read as brand, not grey. */
   --glass-bg: rgb(6 22 34 / 0.74);
   --glass-border: rgb(150 200 240 / 0.12);
+  --glass-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 28px 80px -32px rgb(0 0 0 / 0.95);
+  --glass-shadow-hover: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 30px 80px -36px rgb(240 107 40 / 0.55);
 
-  /* Fixed rhythm for section padding so the scroll narrative stays even. */
-  --section-y: clamp(6rem, 12vh, 10rem);
+  /* Surfaces, by role. */
+  --surface-nav: rgba(3, 11, 18, 0.74);
+  --surface-menu: rgba(3, 11, 18, 0.96);
+  --surface-choice: rgb(8 28 42 / 0.5);
+  --surface-choice-hover: rgb(12 40 60 / 0.6);
+  --surface-choice-selected: linear-gradient(135deg, rgb(44 143 227 / 0.24), rgb(44 143 227 / 0.08));
+  --surface-field: rgb(3 14 22 / 0.6);
+  --surface-chip: rgba(5, 19, 30, 0.7);
+  /* The About orbit's chips sit a shade denser than the hero's. */
+  --surface-orbit-chip: rgba(5, 19, 30, 0.72);
+  --surface-chip-hover: rgba(10, 32, 48, 0.92);
+  --surface-chip-active: rgba(8, 28, 42, 0.94);
+  --surface-pill: rgba(5, 19, 30, 0.6);
+  --surface-hint: rgba(4, 15, 24, 0.88);
+  --surface-popover: rgba(5, 19, 30, 0.9);
+  --surface-panel: rgba(6, 22, 34, 0.92);
+  --surface-dialog: rgba(6, 22, 34, 0.94);
+  --surface-control: rgba(6, 22, 34, 0.82);
+  /* The scrim laid over the globe behind copy: the page colour itself, so
+     space fades into the page. `veil-side` is the wide-screen scrim that runs
+     from the copy toward a planet beside it. */
+  --veil: var(--color-void);
+  --veil-side: var(--color-void);
+  /* Behind a modal: the page recedes into the void. */
+  --surface-scrim: rgb(3 11 18 / 0.8);
+  --surface-overlay: rgb(3 11 18 / 0.92);
+  /* Resting fills for in-flow cards and fields that sit straight on the page. */
+  --surface-rung: rgb(255 255 255 / 0.025);
+  --surface-rung-hover: rgb(255 255 255 / 0.05);
+  --surface-tile: rgb(255 255 255 / 0.02);
+  --surface-tag: rgb(255 255 255 / 0.03);
+  --surface-field-soft: rgb(255 255 255 / 0.04);
+  /* A highlighted option in a list (search results). */
+  --surface-option-hover: rgb(255 255 255 / 0.03);
+  --surface-option-active: rgb(255 255 255 / 0.06);
+
+  /* Form errors. */
+  --color-error: oklch(80.8% 0.114 19.571);
+  --color-error-line: color-mix(in oklab, oklch(70.4% 0.191 22.216) 70%, transparent);
+  /* A field's focus halo, where the field doesn't already draw one. */
+  --focus-halo: 0 0 #0000;
+
+  /* Elevation. Dark lifts with deep, wide shadows; light with short soft ones. */
+  --shadow-chip: 0 14px 40px -18px rgba(0, 0, 0, 0.9);
+  --shadow-chip-active: 0 0 36px -4px rgb(240 107 40 / 0.55);
+  --shadow-choice-selected: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 14px 40px -18px rgb(44 143 227 / 0.8);
+  --shadow-choice: 0 0 #0000;
+  --shadow-popover: 0 28px 80px -28px rgba(0, 0, 0, 0.95);
+  --shadow-dialog: 0 40px 120px -40px rgba(0, 0, 0, 1);
+  --shadow-card: 0 30px 70px -40px rgb(0 0 0 / 0.95);
+  --shadow-card-hover: 0 40px 90px -40px rgb(240 107 40 / 0.45);
+  --shadow-lift-orange: 0 20px 50px -24px rgb(240 107 40 / 0.7);
+  /* Small controls floating over the page. Dark lets the glass carry them. */
+  --shadow-float: 0 0 #0000;
+  /* In-flow tiles: flat at night, a whisper of lift by day. */
+  --shadow-tile: 0 0 #0000;
+  --shadow-tile-hover: 0 0 #0000;
+  --monogram-shadow: 0 8px 40px rgb(0 0 0 / 0.45);
+
+  /* The hero orbit's ring around the planet. */
+  --orbit-line: rgba(244, 247, 252, 0.13);
+  --orbit-line-faint: rgba(244, 247, 252, 0.05);
+
+  /* Diagram strokes, and the blue a reading fills with. */
+  --line-faint: rgb(170 205 235 / 0.07);
+  --line: rgb(170 205 235 / 0.16);
+  --reading-from: #7cc0f5;
+  --reading-to: var(--brand-blue);
+  /* The signal travelling in along a network link. */
+  --pulse-core: #fff4ec;
+  /* Faint dotted field behind the About and coming-soon heroes. */
+  --dot-field: rgb(170 205 235 / 0.13);
+  --dot-field-soft: rgb(170 205 235 / 0.12);
+  /* The spark that runs along the brand hairline. */
+  --spark: rgb(255 255 255 / 0.9);
+  /* Under the current page's link in the bar. The dark bar marks it with
+     brighter text alone. */
+  --nav-indicator: transparent;
+  /* Stage light, as a multiplier on the decorative orange and blue washes. */
+  --stage-light: 1;
+}
+
+/* -- Light ------------------------------------------------------------ */
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Warm paper, not white: the page is the lowest layer, cards and panels sit
+     on it in white, so depth comes from the surfaces rather than from boxes. */
+  --color-void: #f6f4ef;
+  --color-bg: #fcfbf8;
+  --color-bg-elevated: #ffffff;
+  --color-surface: #ffffff;
+  /* Deep navy-charcoal rather than black, so type sits in the logo's family. */
+  --color-text: #0d1b26;
+  --color-muted: #465663;
+  /* Still clears 4.5:1 on paper — the smallest labels on the site use it. */
+  --color-faint: #5d6a75;
+  --color-border: rgb(13 27 38 / 0.1);
+  --color-border-strong: rgb(13 27 38 / 0.18);
+  --tint: #0d1b26;
+
+  --color-ink: #041a26;
+
+  /* Both brand colours deepen for text on paper — the logo's own values fall
+     below 3:1 — and keep their meaning: blue is now, orange is next. */
+  --color-accent: #1866b5;
+  --color-accent-strong: #155a9f;
+  --color-accent-soft: rgb(26 107 189 / 0.09);
+  --color-accent-line: rgb(26 107 189 / 0.3);
+
+  /* Deep enough to hold 4.5:1 even on its own soft tint (the "Next" badge). */
+  --color-orange: #b4420f;
+  --color-orange-strong: #a53b0c;
+  --color-orange-soft: rgb(240 107 40 / 0.1);
+  --color-orange-line: rgb(226 86 28 / 0.35);
+
+  /* In daylight the logo can be itself: orange, blue and navy. */
+  --wordmark-you: var(--brand-orange);
+  --wordmark-in: var(--brand-blue);
+  --wordmark-sports: var(--brand-navy);
+
+  --glow: 0.4;
+  --accent-rgb: 26 107 189;
+  --orange-rgb: 226 86 28;
+
+  --glass-bg: rgb(255 255 255 / 0.78);
+  --glass-border: rgb(13 27 38 / 0.08);
+  --glass-shadow: 0 1px 2px rgb(13 27 38 / 0.04), 0 18px 40px -22px rgb(13 27 38 / 0.18);
+  --glass-shadow-hover: 0 1px 2px rgb(13 27 38 / 0.04), 0 24px 48px -24px rgb(226 86 28 / 0.32);
+
+  --surface-nav: rgb(246 244 239 / 0.8);
+  --surface-menu: rgb(250 249 246 / 0.98);
+  --surface-choice: #ffffff;
+  --surface-choice-hover: #ffffff;
+  --surface-choice-selected: linear-gradient(135deg, rgb(26 107 189 / 0.1), rgb(26 107 189 / 0.04)), linear-gradient(#fff, #fff);
+  --surface-field: #ffffff;
+  --surface-chip: rgb(255 255 255 / 0.92);
+  --surface-orbit-chip: rgb(255 255 255 / 0.92);
+  --surface-chip-hover: #ffffff;
+  --surface-chip-active: #ffffff;
+  --surface-pill: rgb(255 255 255 / 0.86);
+  --surface-hint: rgb(255 255 255 / 0.9);
+  --surface-popover: rgb(255 255 255 / 0.97);
+  --surface-panel: rgb(255 255 255 / 0.97);
+  --surface-dialog: #ffffff;
+  --surface-control: rgb(255 255 255 / 0.9);
+  /* Lighter by day: beside the copy the planet keeps its night side and
+     should stay crisp; under copy it is drawn as a pale halftone already. */
+  --veil: rgb(246 244 239 / 0.42);
+  --veil-side: rgb(246 244 239 / 0.22);
+  --surface-scrim: rgb(246 244 239 / 0.72);
+  --surface-overlay: rgb(246 244 239 / 0.94);
+  --surface-rung: #ffffff;
+  --surface-rung-hover: #ffffff;
+  --surface-tile: #ffffff;
+  --surface-tag: #ffffff;
+  --surface-field-soft: #ffffff;
+  --surface-option-hover: rgb(13 27 38 / 0.035);
+  --surface-option-active: rgb(26 107 189 / 0.08);
+
+  --color-error: #b42318;
+  --color-error-line: rgb(180 35 24 / 0.55);
+  --focus-halo: 0 0 0 4px rgb(26 107 189 / 0.14);
+
+  --shadow-chip: 0 1px 2px rgb(13 27 38 / 0.06), 0 10px 26px -14px rgb(13 27 38 / 0.28);
+  --shadow-chip-active: 0 1px 2px rgb(13 27 38 / 0.06), 0 14px 30px -14px rgb(226 86 28 / 0.45);
+  --shadow-choice-selected: 0 1px 2px rgb(13 27 38 / 0.04), 0 12px 28px -16px rgb(26 107 189 / 0.45);
+  --shadow-choice: 0 1px 2px rgb(13 27 38 / 0.04), 0 6px 16px -12px rgb(13 27 38 / 0.18);
+  --shadow-popover: 0 2px 6px rgb(13 27 38 / 0.05), 0 24px 56px -24px rgb(13 27 38 / 0.3);
+  --shadow-dialog: 0 2px 8px rgb(13 27 38 / 0.05), 0 36px 90px -36px rgb(13 27 38 / 0.35);
+  --shadow-card: 0 1px 2px rgb(13 27 38 / 0.05), 0 20px 44px -28px rgb(13 27 38 / 0.28);
+  --shadow-card-hover: 0 1px 2px rgb(13 27 38 / 0.05), 0 28px 56px -30px rgb(226 86 28 / 0.4);
+  --shadow-lift-orange: 0 1px 2px rgb(13 27 38 / 0.04), 0 18px 36px -22px rgb(226 86 28 / 0.4);
+  --shadow-float: 0 1px 2px rgb(13 27 38 / 0.05), 0 8px 24px -12px rgb(13 27 38 / 0.22);
+  --shadow-tile: 0 1px 2px rgb(13 27 38 / 0.04), 0 6px 16px -12px rgb(13 27 38 / 0.16);
+  --shadow-tile-hover: 0 1px 2px rgb(13 27 38 / 0.05), 0 12px 26px -14px rgb(13 27 38 / 0.24);
+  --monogram-shadow: 0 6px 28px rgb(13 27 38 / 0.12);
+
+  --orbit-line: rgb(13 27 38 / 0.2);
+  --orbit-line-faint: rgb(13 27 38 / 0.07);
+
+  --line-faint: rgb(13 27 38 / 0.08);
+  --line: rgb(13 27 38 / 0.16);
+  --reading-from: #5aa9ec;
+  --reading-to: #1a6bbd;
+  --pulse-core: #e2561c;
+  --dot-field: rgb(13 27 38 / 0.12);
+  --dot-field-soft: rgb(13 27 38 / 0.11);
+  --spark: rgb(240 107 40 / 0.9);
+  --nav-indicator: var(--brand-orange);
+  --stage-light: 0.75;
 }
 
 @theme inline {
@@ -67,6 +301,7 @@
   --color-faint: var(--color-faint);
   --color-border: var(--color-border);
   --color-border-strong: var(--color-border-strong);
+  --color-tint: var(--tint);
   --color-accent: var(--color-accent);
   --color-accent-strong: var(--color-accent-strong);
   --color-accent-soft: var(--color-accent-soft);
@@ -78,6 +313,36 @@
   --color-navy: var(--brand-navy);
   --color-ink: var(--color-ink);
   --color-cyan: var(--color-cyan);
+  --color-planet: var(--color-planet);
+
+  --color-nav: var(--surface-nav);
+  --color-menu: var(--surface-menu);
+  --color-choice: var(--surface-choice);
+  --color-choice-hover: var(--surface-choice-hover);
+  --color-field: var(--surface-field);
+  --color-chip: var(--surface-chip);
+  --color-orbit-chip: var(--surface-orbit-chip);
+  --color-chip-hover: var(--surface-chip-hover);
+  --color-chip-active: var(--surface-chip-active);
+  --color-pill: var(--surface-pill);
+  --color-hint: var(--surface-hint);
+  --color-popover: var(--surface-popover);
+  --color-panel: var(--surface-panel);
+  --color-dialog: var(--surface-dialog);
+  --color-control: var(--surface-control);
+  --color-scrim: var(--surface-scrim);
+  --color-overlay: var(--surface-overlay);
+  --color-veil: var(--veil);
+  --color-veil-side: var(--veil-side);
+  --color-rung: var(--surface-rung);
+  --color-rung-hover: var(--surface-rung-hover);
+  --color-tile: var(--surface-tile);
+  --color-tag: var(--surface-tag);
+  --color-field-soft: var(--surface-field-soft);
+  --color-option-hover: var(--surface-option-hover);
+  --color-option-active: var(--surface-option-active);
+  --color-error: var(--color-error);
+  --color-error-line: var(--color-error-line);
 
   --font-display: var(--font-geist);
   --font-sans: var(--font-inter);
@@ -116,7 +381,6 @@
 }
 
 html {
-  color-scheme: dark;
   /* The pinned WebGL canvas needs a stable viewport; smooth scroll is owned by
      GSAP ScrollTrigger, not the browser. */
   scroll-behavior: auto;
@@ -126,6 +390,12 @@ body {
   background: var(--color-void);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
+}
+
+/* A subtree pinned to one theme carries that theme's text colour with it,
+   rather than inheriting the page's. */
+[data-theme]:not(:root) {
+  color: var(--color-text);
 }
 
 /* The globe is draggable from any empty part of the page, so the page itself
@@ -142,7 +412,7 @@ body {
 }
 
 ::selection {
-  background: var(--color-orange);
+  background: var(--brand-orange);
   color: var(--color-ink);
 }
 
@@ -179,9 +449,72 @@ body {
 
 /* -- Brand treatments ------------------------------------------------ */
 
+/* Each treatment reads its look from these, so a theme only has to restate
+   the values — the classes themselves never change. */
+:root,
+[data-theme="dark"] {
+  --brand-text: linear-gradient(180deg, #ffb07a 0%, var(--brand-orange) 55%, #e2551b 100%);
+  --brand-cta: linear-gradient(180deg, #ff8f52 0%, var(--brand-orange) 52%, #e0561d 100%);
+  --brand-cta-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.28),
+    0 0 0 1px rgb(255 138 76 / 0.45),
+    0 14px 40px -14px rgb(240 107 40 / 0.85);
+  --brand-cta-hover: linear-gradient(180deg, #ffa16c 0%, #f57a3a 52%, #e8621f 100%);
+  --brand-cta-hover-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    0 0 0 1px rgb(255 160 110 / 0.6),
+    0 18px 50px -12px rgb(240 107 40 / 0.95);
+  --brand-reading: linear-gradient(90deg, rgb(44 143 227 / 0.55), var(--brand-blue) 60%, #7cc0f5);
+  --brand-reading-shadow: 0 0 14px -2px rgb(44 143 227 / 0.65);
+  --brand-glass-edge: linear-gradient(140deg, rgb(240 107 40 / 0.75), rgb(150 200 240 / 0.12) 42%, rgb(150 200 240 / 0.12) 62%, rgb(44 143 227 / 0.75));
+  --brand-glass-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.05),
+    0 30px 90px -30px rgb(0 0 0 / 0.95),
+    0 0 80px -40px rgb(240 107 40 / 0.35);
+  --brand-rule: linear-gradient(
+    90deg,
+    transparent,
+    rgb(240 107 40 / 0.7) 18%,
+    rgb(170 205 235 / 0.14) 50%,
+    rgb(44 143 227 / 0.7) 82%,
+    transparent
+  );
+}
+
+[data-theme="light"] {
+  /* Deeper at the base than the dark theme's, so display words hold 3:1 on
+     paper while still reading as the logo's orange. */
+  --brand-text: linear-gradient(180deg, #f47c3e 0%, #e2561c 55%, #c4450f 100%);
+  --brand-cta: linear-gradient(180deg, #f78448 0%, #ef6726 52%, #e1581c 100%);
+  --brand-cta-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 0 0 1px rgb(214 84 24 / 0.35),
+    0 10px 24px -12px rgb(226 86 28 / 0.6);
+  --brand-cta-hover: linear-gradient(180deg, #f98f56 0%, #f2702f 52%, #e65f20 100%);
+  --brand-cta-hover-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.4),
+    0 0 0 1px rgb(214 84 24 / 0.45),
+    0 16px 32px -14px rgb(226 86 28 / 0.65);
+  --brand-reading: linear-gradient(90deg, #7db8ee, #2c8fe3 55%, #1a6bbd);
+  --brand-reading-shadow: 0 1px 6px -2px rgb(26 107 189 / 0.45);
+  --brand-glass-edge: linear-gradient(140deg, rgb(240 107 40 / 0.65), rgb(13 27 38 / 0.08) 42%, rgb(13 27 38 / 0.08) 62%, rgb(44 143 227 / 0.6));
+  --brand-glass-shadow:
+    0 1px 2px rgb(13 27 38 / 0.05),
+    0 30px 70px -36px rgb(13 27 38 / 0.3),
+    0 24px 60px -40px rgb(240 107 40 / 0.35);
+  --brand-rule: linear-gradient(
+    90deg,
+    transparent,
+    rgb(226 86 28 / 0.6) 18%,
+    rgb(13 27 38 / 0.12) 50%,
+    rgb(26 107 189 / 0.55) 82%,
+    transparent
+  );
+}
+
 /* Display words set in the brand orange, lit from the top like stadium light. */
 .text-brand {
-  background: linear-gradient(180deg, #ffb07a 0%, var(--brand-orange) 55%, #e2551b 100%);
+  background: var(--brand-text);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -189,34 +522,26 @@ body {
 
 /* The primary action: a lit orange, deeper at the base so it reads as solid. */
 .bg-brand-cta {
-  background: linear-gradient(180deg, #ff8f52 0%, var(--brand-orange) 52%, #e0561d 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.28),
-    0 0 0 1px rgb(255 138 76 / 0.45),
-    0 14px 40px -14px rgb(240 107 40 / 0.85);
+  background: var(--brand-cta);
+  box-shadow: var(--brand-cta-shadow);
 }
 
 .bg-brand-cta:hover {
-  background: linear-gradient(180deg, #ffa16c 0%, #f57a3a 52%, #e8621f 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.32),
-    0 0 0 1px rgb(255 160 110 / 0.6),
-    0 18px 50px -12px rgb(240 107 40 / 0.95);
+  background: var(--brand-cta-hover);
+  box-shadow: var(--brand-cta-hover-shadow);
 }
 
 /* Readings fill in blue that brightens toward the tip. */
 .bg-brand-reading {
-  background: linear-gradient(90deg, rgb(44 143 227 / 0.55), var(--brand-blue) 60%, #7cc0f5);
-  box-shadow: 0 0 14px -2px rgb(44 143 227 / 0.65);
+  background: var(--brand-reading);
+  box-shadow: var(--brand-reading-shadow);
 }
 
-/* Navy glass for panels floating over the globe. */
+/* Navy glass for panels floating over the globe; frosted white in daylight. */
 .glass {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.05),
-    0 28px 80px -32px rgb(0 0 0 / 0.95);
+  box-shadow: var(--glass-shadow);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
@@ -228,11 +553,8 @@ body {
   border: 1px solid transparent;
   background:
     linear-gradient(var(--glass-bg), var(--glass-bg)) padding-box,
-    linear-gradient(140deg, rgb(240 107 40 / 0.75), rgb(150 200 240 / 0.12) 42%, rgb(150 200 240 / 0.12) 62%, rgb(44 143 227 / 0.75)) border-box;
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.05),
-    0 30px 90px -30px rgb(0 0 0 / 0.95),
-    0 0 80px -40px rgb(240 107 40 / 0.35);
+    var(--brand-glass-edge) border-box;
+  box-shadow: var(--brand-glass-shadow);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
@@ -240,14 +562,7 @@ body {
 /* A hairline in the logo's colours: orange into blue, fading at both ends. */
 .rule-brand {
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(240 107 40 / 0.7) 18%,
-    rgb(170 205 235 / 0.14) 50%,
-    rgb(44 143 227 / 0.7) 82%,
-    transparent
-  );
+  background: var(--brand-rule);
 }
 
 .text-balance { text-wrap: balance; }
@@ -258,6 +573,57 @@ body {
 
 .hide-scrollbar { scrollbar-width: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* -- Theme switching ------------------------------------------------- */
+
+/* The toggle's two icons are both in the markup; the theme decides which one
+   is showing, so the right icon is there on the very first paint. */
+.theme-icon {
+  transition:
+    opacity 360ms cubic-bezier(0.16, 1, 0.3, 1),
+    rotate 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    scale 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-icon-sun,
+:root[data-theme="light"] .theme-icon-moon {
+  opacity: 0;
+  rotate: -90deg;
+  scale: 0.5;
+}
+
+:root[data-theme="light"] .theme-icon-sun {
+  opacity: 1;
+  rotate: 0deg;
+  scale: 1;
+}
+
+.theme-label-light,
+:root[data-theme="light"] .theme-label-dark {
+  display: none;
+}
+
+:root[data-theme="light"] .theme-label-light {
+  display: inline;
+}
+
+/* The switch itself is a crossfade of the whole page (see `setTheme`). */
+:root[data-theme-switching]::view-transition-old(root),
+:root[data-theme-switching]::view-transition-new(root) {
+  animation-duration: 420ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Browsers without view transitions ease the colours instead. Gradients
+   can't interpolate, so they still cut — a fair fallback. */
+:root[data-theme-easing] *,
+:root[data-theme-easing] *::before,
+:root[data-theme-easing] *::after {
+  transition-property: color, background-color, border-color, fill, stroke, box-shadow, outline-color, text-decoration-color !important;
+  transition-duration: 380ms !important;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+}
 
 /* -- Route transitions ---------------------------------------------- */
 

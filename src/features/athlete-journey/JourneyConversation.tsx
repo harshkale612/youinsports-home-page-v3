@@ -149,7 +149,7 @@ export function JourneyConversation({ onComplete }: { onComplete: () => void }) 
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-void/94 via-void/84 to-void/94 md:bg-gradient-to-r md:from-void/95 md:via-void/62 md:to-transparent"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-veil/94 via-veil/84 to-veil/94 md:bg-gradient-to-r md:from-veil-side/95 md:via-veil-side/62 md:to-transparent"
       />
 
       <Container className="relative">
