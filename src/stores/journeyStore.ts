@@ -60,7 +60,6 @@ export type JourneyState = {
   setSport: (sport: Sport) => void;
   setEnvironment: (environment: Environment) => void;
   setCompetition: (competition: CompetitionScope, name?: string) => void;
-  setCompetitionName: (name: string) => void;
   setLevel: (level: JourneyLevel) => void;
   setGoal: (goal: Goal) => void;
 
@@ -111,7 +110,6 @@ export const useJourney = create<JourneyState>((set, get) => ({
   setEnvironment: (environment) => set(answer({ environment })),
   setCompetition: (competition, name) =>
     set(answer(name === undefined ? { competition } : { competition, competitionName: name })),
-  setCompetitionName: (competitionName) => set(answer({ competitionName })),
   setLevel: (level) => set(answer({ level })),
   setGoal: (goal) => set(answer({ goal })),
 

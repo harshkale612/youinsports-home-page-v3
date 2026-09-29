@@ -75,7 +75,9 @@ export type JourneyAnswers = {
   sport: Sport | null;
   environment: Environment | null;
   competition: CompetitionScope | null;
-  /** Free text from "tell us what you're competing in" — optional throughout. */
+  /** A named event, e.g. "Maharashtra District Cricket Tournament". The flow no
+   *  longer asks for one, so only demo personas set it — the engine falls back
+   *  to the competition's own label when it is empty. */
   competitionName: string;
   level: JourneyLevel | null;
   goal: Goal | null;

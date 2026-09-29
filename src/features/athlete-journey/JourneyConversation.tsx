@@ -39,7 +39,6 @@ export function JourneyConversation({ onComplete }: { onComplete: () => void }) 
   const setSport = useJourney((s) => s.setSport);
   const setEnvironment = useJourney((s) => s.setEnvironment);
   const setCompetition = useJourney((s) => s.setCompetition);
-  const setCompetitionName = useJourney((s) => s.setCompetitionName);
   const setLevel = useJourney((s) => s.setLevel);
   const setGoal = useJourney((s) => s.setGoal);
   const nextQuestion = useJourney((s) => s.nextQuestion);
@@ -84,7 +83,7 @@ export function JourneyConversation({ onComplete }: { onComplete: () => void }) 
    *
    * The browser clamps scroll position to the document's new height on every
    * commit — so answering a long question (say, Competition, with a dozen
-   * cards and a text field) and landing on a much shorter one (Level) can
+   * cards) and landing on a much shorter one (Level) can
    * leave the scroll position past the new content entirely, stranding the
    * athlete in the footer with no visible question at all.
    *
@@ -207,13 +206,11 @@ export function JourneyConversation({ onComplete }: { onComplete: () => void }) 
                     <CompetitionQuestion
                       level={answers.level}
                       selected={answers.competition}
-                      competitionName={answers.competitionName}
                       onSelect={(competition) => {
                         setCompetition(competition);
                         answered("competition", competition);
+                        scheduleAdvance(nextQuestion, ADVANCE_DELAY);
                       }}
-                      onNameChange={setCompetitionName}
-                      onContinue={nextQuestion}
                       onBack={previousQuestion}
                     />
                   )}
