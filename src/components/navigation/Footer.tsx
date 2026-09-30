@@ -26,16 +26,13 @@ const GROUPS = [
 ];
 
 /**
- * The site footer. Dark in both themes, on purpose: a light page closes on the
- * same night the dark one lives in — the horizon planets on the About and
- * coming-soon pages rise straight into it — so `data-theme` pins it.
+ * The site footer. Follows the theme: it starts in the page colour, so the
+ * horizon planets on the About and coming-soon pages run into it without a
+ * seam, and deepens toward the bottom of the page.
  */
 export function Footer() {
   return (
-    <footer
-      data-theme="dark"
-      className="relative z-10 overflow-hidden bg-[linear-gradient(180deg,var(--color-void),var(--color-bg)_60%,#071a27)] py-14"
-    >
+    <footer className="relative z-10 overflow-hidden bg-[image:var(--footer-bg)] py-14">
       <span aria-hidden className="rule-brand absolute inset-x-0 top-0" />
       {/* The globe's orange sunrise, echoed once more at the very bottom. */}
       <div
@@ -57,7 +54,7 @@ export function Footer() {
           <nav className="grid grid-cols-2 gap-x-10 gap-y-9 sm:grid-cols-3 md:gap-x-16" aria-label="Footer">
             {GROUPS.map((group) => (
               <div key={group.title}>
-                <h2 className="font-display text-[0.58rem] font-semibold tracking-[0.22em] text-accent-strong/80 uppercase">
+                <h2 className="font-display text-[0.58rem] font-semibold tracking-[0.22em] text-[var(--footer-heading)] uppercase">
                   {group.title}
                 </h2>
                 <ul className="mt-4 flex flex-col gap-2.5">

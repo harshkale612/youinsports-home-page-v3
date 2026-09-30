@@ -14,8 +14,8 @@
  * `shadow-[var(--shadow-popover)]`); the two blocks below decide what each
  * role looks like. The theme lives on `<html data-theme>`, set before first
  * paint by the script in the root layout. Any element can pin a subtree to
- * one theme with its own `data-theme` — the footer does, so the page always
- * ends on the dark horizon.
+ * one theme with its own `data-theme` (the athlete at the heart of the About
+ * page's network diagram stays night-side that way).
  */
 
 /* Brand constants, sampled from the YouInSports logo. The same in both themes. */
@@ -25,10 +25,6 @@
   /* The logo's "SPORTS". On the dark theme it is a surface tint and the ink on
      orange, never body text, because it has no contrast there. */
   --brand-navy: #0a2f42;
-
-  /* The planet on the About and coming-soon horizons stays night-side in both
-     themes, and runs straight into the (always dark) footer below it. */
-  --color-planet: #030b12;
 
   --color-cyan: hsl(186 86% 62%);
 
@@ -98,6 +94,12 @@
   --glass-shadow-hover: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 30px 80px -36px rgb(240 107 40 / 0.55);
 
   /* Surfaces, by role. */
+  /* The planet rising on the About and coming-soon horizons. It runs straight
+     into the footer below it, so the two share the page colour at the seam. */
+  --color-planet: #030b12;
+  --footer-bg: linear-gradient(180deg, var(--color-void), var(--color-bg) 60%, #071a27);
+  --footer-heading: color-mix(in oklab, var(--color-accent-strong) 80%, transparent);
+
   --surface-nav: rgba(3, 11, 18, 0.74);
   --surface-menu: rgba(3, 11, 18, 0.96);
   --surface-choice: rgb(8 28 42 / 0.5);
@@ -227,6 +229,12 @@
   --glass-border: rgb(13 27 38 / 0.08);
   --glass-shadow: 0 1px 2px rgb(13 27 38 / 0.04), 0 18px 40px -22px rgb(13 27 38 / 0.18);
   --glass-shadow-hover: 0 1px 2px rgb(13 27 38 / 0.04), 0 24px 48px -24px rgb(226 86 28 / 0.32);
+
+  /* By day the horizon is a paper dome, drawn by its orange rim and the
+     sunrise above it, settling into a footer a shade deeper than the page. */
+  --color-planet: var(--color-void);
+  --footer-bg: linear-gradient(180deg, var(--color-void), #f2efe9 60%, #eeebe4);
+  --footer-heading: var(--color-accent-strong);
 
   --surface-nav: rgb(246 244 239 / 0.8);
   --surface-menu: rgb(250 249 246 / 0.98);
