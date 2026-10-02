@@ -31,9 +31,16 @@ import { OPENING, STARTING_POSITION, squareToXZ, type Side } from "@/scenes/ches
  * Where the camera sits at a point in the scroll story.
  *
  * `frame` is the share of the viewport's height, measured up from the
- * bottom, that the board is fitted into — the rest is left for copy. `zoom`
- * scales the distance from that fit: 1 shows the whole board, less crops in.
- * Both are relative, so a pose frames the same way on a phone and a monitor.
+ * bottom, that the board is fitted into — the rest is left for copy — less a
+ * strip along the foot (`FOOT`) that the board's nearest corner never
+ * crosses. `zoom` scales the distance from that fit: 1 shows the whole board,
+ * less crops in. Both are relative, so a pose frames the same way on a phone
+ * and a monitor.
+ *
+ * `title` is how far the shot keeps clear of the stage's title: 1 shrinks the
+ * frame to the room left under it (see `setHeadroom`), 0 ignores it. The
+ * title is measured rather than guessed, because how much of the viewport it
+ * takes differs from a phone to a short laptop to a tall monitor.
  */
 export type CameraPose = {
   at: number;
@@ -41,20 +48,21 @@ export type CameraPose = {
   elevation: number;
   zoom: number;
   frame: number;
+  title: number;
   target: [x: number, y: number, z: number];
 };
 
 /**
- * The story, in four shots: the product, the moves from above, the castled
- * king up close, then round to the other side of the board. There is no copy
- * on the stage yet, so every shot gives the board most of the frame; lower
- * `frame` to make room when copy goes back on.
+ * The story, in four shots: the product under its title, the moves from
+ * above, the castled king up close, then round to the other side of the
+ * board. The title leaves as the story starts, so only the first shot makes
+ * room for it; the rest give the board most of the frame.
  */
 export const STORY_POSES: CameraPose[] = [
-  { at: 0, azimuth: -30, elevation: 26, zoom: 1, frame: 0.78, target: [0, 0, 0] },
-  { at: 0.31, azimuth: 0, elevation: 70, zoom: 1, frame: 0.84, target: [0, 0, 0] },
-  { at: 0.6, azimuth: 50, elevation: 14, zoom: 0.5, frame: 0.9, target: [1.7, 0.45, 2.6] },
-  { at: 0.9, azimuth: 150, elevation: 32, zoom: 1, frame: 0.82, target: [0, 0, 0] },
+  { at: 0, azimuth: -30, elevation: 26, zoom: 1, frame: 0.78, title: 1, target: [0, 0, 0] },
+  { at: 0.31, azimuth: 0, elevation: 70, zoom: 1, frame: 0.84, title: 0, target: [0, 0, 0] },
+  { at: 0.6, azimuth: 50, elevation: 14, zoom: 0.5, frame: 0.9, title: 0, target: [1.7, 0.45, 2.6] },
+  { at: 0.9, azimuth: 150, elevation: 32, zoom: 1, frame: 0.82, title: 0, target: [0, 0, 0] },
 ];
 
 const FOV = 30;
@@ -67,9 +75,38 @@ const BOARD_RADIUS = (BOARD * Math.SQRT2) / 2;
 const PIECE_HEIGHT = 1.45;
 /** Height of the playing surface; pieces stand on it. */
 const SURFACE = 0.02;
+/** Depth of the frame the squares sit in. */
+const FRAME_DEPTH = 0.46;
+
+/**
+ * The points the framing keeps on screen: each corner of the frame, top and
+ * underside, and the tallest piece standing on each corner square.
+ */
+const BOUNDS: Vector3[] = [-1, 1].flatMap((x) =>
+  [-1, 1].flatMap((z) => [
+    new Vector3((x * BOARD) / 2, 0, (z * BOARD) / 2),
+    new Vector3((x * BOARD) / 2, -FRAME_DEPTH, (z * BOARD) / 2),
+    new Vector3(x * 3.9, PIECE_HEIGHT, z * 3.9),
+  ]),
+);
 
 const BRAND_ORANGE = 0xf06b28;
 const BRAND_BLUE = 0x2c8fe3;
+
+/** The least of the viewport the board is ever fitted into, however tall the title runs. */
+const MIN_FRAME = 0.4;
+/**
+ * The strip along the foot of the viewport the board stays above, as a share
+ * of its height. It keeps the nearest corner whole, and leaves a margin
+ * between the board and the page that follows once the stage scrolls away.
+ */
+const FOOT = 0.04;
+/**
+ * How far a shot under the title draws a board that doesn't fill its frame up
+ * towards the title: 0 centres it in the room left, 0.5 would butt it against
+ * the title.
+ */
+const TITLE_PULL = 0.3;
 
 /** Seconds between plies, and how long the board holds the finished position. */
 const PLY_INTERVAL = 1.35;
@@ -113,6 +150,7 @@ function poseAt(progress: number): ScenePose {
     elevation: mix(a.elevation, b.elevation),
     zoom: mix(a.zoom, b.zoom),
     frame: mix(a.frame, b.frame),
+    title: mix(a.title, b.title),
     tx: mix(a.target[0], b.target[0]),
     ty: mix(a.target[1], b.target[1]),
     tz: mix(a.target[2], b.target[2]),
@@ -137,6 +175,9 @@ export class ChessBoardScene {
   private renderer: WebGLRenderer;
   private scene = new Scene();
   private camera = new PerspectiveCamera(FOV, 1, 0.1, 200);
+  /** Stands in for the camera while a shot is fitted, so the real one is only ever moved once a frame. */
+  private fitCamera = new PerspectiveCamera(FOV, 1, 0.1, 400);
+  private point = new Vector3();
   /** Key and rim lights, turned with the camera so every shot is lit the same way. */
   private rig = new Group();
   private environment: Texture;
@@ -149,6 +190,8 @@ export class ChessBoardScene {
 
   private width = 1;
   private height = 1;
+  /** Pixels at the top of the viewport taken by the title, gap included. */
+  private headroom = 0;
   private goal: ScenePose = poseAt(0);
   private pose: ScenePose = poseAt(0);
   private pointer = { x: 0, y: 0 };
@@ -239,6 +282,12 @@ export class ChessBoardScene {
     if (!this.frame) this.render();
   }
 
+  /** Pixels at the top of the viewport the title takes, for shots that keep clear of it. */
+  setHeadroom(pixels: number) {
+    this.headroom = Math.max(0, pixels);
+    if (!this.frame) this.render();
+  }
+
   dispose() {
     this.setRunning(false);
     // Pieces share geometries and materials, so some are released more than
@@ -290,7 +339,7 @@ export class ChessBoardScene {
 
   private addBoard() {
     const frame = new Mesh(
-      new RoundedBoxGeometry(BOARD, 0.46, BOARD, 5, 0.16),
+      new RoundedBoxGeometry(BOARD, FRAME_DEPTH, BOARD, 5, 0.16),
       new MeshPhysicalMaterial({
         color: 0x0a1822,
         metalness: 0.75,
@@ -299,7 +348,7 @@ export class ChessBoardScene {
         clearcoatRoughness: 0.3,
       }),
     );
-    frame.position.y = -0.23;
+    frame.position.y = -FRAME_DEPTH / 2;
     frame.receiveShadow = true;
     this.scene.add(frame);
 
@@ -600,22 +649,27 @@ export class ChessBoardScene {
     const azimuth = (pose.azimuth + pointer.x * 5 + drift) * DEG;
     const elevation = Math.min(Math.max(pose.elevation - pointer.y * 3, 6), 84) * DEG;
 
-    // Fit the board's projected footprint into the pose's frame: its width
-    // across 90% of the viewport, its height into the bottom `frame` of it.
+    // Fit the board into the pose's frame: its width across 90% of the
+    // viewport, its height into the bottom `frame` of it, clear of the foot.
     // Framed on the pose rather than the drift, so the board doesn't breathe
     // as it sways.
     const aspect = this.width / this.height;
-    const tanV = Math.tan((FOV / 2) * DEG);
-    const poseAzimuth = pose.azimuth * DEG;
-    const poseElevation = pose.elevation * DEG;
-    const span = BOARD * (Math.abs(Math.cos(poseAzimuth)) + Math.abs(Math.sin(poseAzimuth)));
-    const footprint = span * Math.sin(poseElevation) + PIECE_HEIGHT * Math.cos(poseElevation);
     // Portrait copy wraps onto more lines, so the board gets a little less room.
-    const frame = pose.frame - (aspect < 0.75 ? 0.08 : 0);
-    const fit = Math.max(span / 2 / (tanV * aspect * 0.9), footprint / 2 / (tanV * frame));
-    // A little extra distance for perspective, which widens the near edge.
-    const distance = fit * pose.zoom * 1.06;
-    const lift = 0.5 - frame / 2;
+    const base = pose.frame - (aspect < 0.75 ? 0.08 : 0);
+    // A shot that keeps clear of the title gives up only the part of its frame
+    // the title actually overlaps, so the board shrinks no more than it must.
+    const clear = 1 - this.headroom / this.height;
+    const frame = Math.max(base - pose.title * Math.max(0, base - clear), MIN_FRAME);
+    const bandTop = 1 - frame;
+    const bandBottom = 1 - FOOT;
+    const fitted = this.fitBoard(pose.azimuth * DEG, pose.elevation * DEG, bandBottom - bandTop);
+    const distance = fitted.distance * pose.zoom;
+    // On a portrait screen the board is fitted by its width and leaves part
+    // of its frame empty. Under the title, some of that space goes below the
+    // board rather than all being split around it, so title and board read
+    // as one group instead of two things a gap apart.
+    const spare = bandBottom - bandTop - (fitted.bottom - fitted.top);
+    const lift = (bandTop + bandBottom) / 2 - (fitted.top + fitted.bottom) / 2 - pose.title * spare * TITLE_PULL;
 
     this.rig.rotation.y = azimuth;
 
@@ -632,5 +686,56 @@ export class ChessBoardScene {
     this.camera.setViewOffset(this.width, this.height, 0, -lift * this.height, this.width, this.height);
 
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /**
+   * How far away the camera has to be, looking at the board's centre from
+   * these angles, for the whole board to fill a band `band` tall (a share of
+   * the viewport's height) and at most 90% of its width — and where in the
+   * viewport the board then sits, top and bottom, as shares of its height.
+   *
+   * Found by projecting the board's corners rather than estimating its size,
+   * because perspective swells whichever corner is nearest the camera — by a
+   * tenth of the screen on the diagonal shots — and an estimate either crops
+   * that corner off or leaves the board small. Apparent size goes roughly as
+   * one over distance, so scaling the distance by the overshoot converges in
+   * a few steps.
+   */
+  private fitBoard(azimuth: number, elevation: number, band: number) {
+    const camera = this.fitCamera;
+    camera.aspect = this.width / this.height;
+    camera.updateProjectionMatrix();
+
+    const direction = { x: Math.cos(elevation) * Math.sin(azimuth), y: Math.sin(elevation), z: Math.cos(elevation) * Math.cos(azimuth) };
+    let distance = BOARD * 3;
+    let top = 0;
+    let bottom = 1;
+
+    for (let step = 0; step < 5; step++) {
+      camera.position.set(direction.x * distance, direction.y * distance, direction.z * distance);
+      camera.lookAt(0, 0, 0);
+      camera.updateMatrixWorld();
+
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+      for (const corner of BOUNDS) {
+        const { x, y } = this.point.copy(corner).project(camera);
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+      }
+      top = (1 - maxY) / 2;
+      bottom = (1 - minY) / 2;
+
+      // The last pass only measures, so `top` and `bottom` describe the
+      // distance that is returned.
+      if (step === 4) break;
+      distance *= Math.max((bottom - top) / band, (maxX - minX) / 2 / 0.9);
+    }
+
+    return { distance, top, bottom };
   }
 }

@@ -179,6 +179,22 @@
   --nav-indicator: transparent;
   /* Stage light, as a multiplier on the decorative orange and blue washes. */
   --stage-light: 1;
+
+  /* The pricing cards' display windows: a piece standing on a sliver of the
+     board, in the board's own squares, with its shadow on the floor. */
+  --showcase-surface: linear-gradient(180deg, #0c2335 0%, #081b2a 55%, #05131e 100%);
+  --showcase-square-light: rgb(148 162 175 / 0.13);
+  --showcase-square-dark: rgb(20 49 74 / 0.38);
+  --showcase-edge: rgb(170 205 235 / 0.08);
+  --piece-shadow: rgb(0 0 0 / 0.7);
+  /* Premium's pricing card: its surface, its edge in the logo's colours, the
+     lift and glow it stands on, and its billing switch's chosen pill — in
+     porcelain, the white pieces' finish. */
+  --featured-surface: linear-gradient(180deg, #0b2233 0%, #071826 48%, #05131e 100%);
+  --featured-edge: linear-gradient(160deg, rgb(240 107 40 / 0.9), rgb(150 200 240 / 0.14) 30%, rgb(150 200 240 / 0.06) 62%, rgb(44 143 227 / 0.85));
+  --featured-shadow: 0 44px 100px -44px rgb(240 107 40 / 0.55), 0 30px 60px -34px rgb(4 26 38 / 0.55);
+  --switch-pill: linear-gradient(180deg, #ffffff, #dbe2e9);
+  --switch-pill-shadow: 0 8px 18px -10px rgb(0 0 0 / 0.8), inset 0 -1px 0 rgb(13 27 38 / 0.12);
 }
 
 /* -- Light ------------------------------------------------------------ */
@@ -297,6 +313,19 @@
   --spark: rgb(240 107 40 / 0.9);
   --nav-indicator: var(--brand-orange);
   --stage-light: 0.75;
+
+  --showcase-surface: linear-gradient(180deg, #ece8df 0%, #f3f0ea 55%, #f8f6f2 100%);
+  --showcase-square-light: rgb(13 27 38 / 0.05);
+  --showcase-square-dark: rgb(13 27 38 / 0.13);
+  --showcase-edge: rgb(13 27 38 / 0.07);
+  --piece-shadow: rgb(13 27 38 / 0.4);
+  /* By day Premium is a white card warmed at the top, its brand edge and
+     orange glow doing the work the dark surface does at night. */
+  --featured-surface: linear-gradient(180deg, #fff6ef 0%, #ffffff 30%, #ffffff 100%);
+  --featured-edge: linear-gradient(160deg, rgb(240 107 40 / 0.85), rgb(13 27 38 / 0.08) 30%, rgb(13 27 38 / 0.06) 62%, rgb(44 143 227 / 0.75));
+  --featured-shadow: 0 1px 2px rgb(13 27 38 / 0.05), 0 40px 90px -44px rgb(226 86 28 / 0.5), 0 24px 50px -32px rgb(13 27 38 / 0.25);
+  --switch-pill: linear-gradient(#ffffff, #ffffff);
+  --switch-pill-shadow: 0 1px 2px rgb(13 27 38 / 0.08), 0 4px 12px -4px rgb(13 27 38 / 0.22);
 }
 
 @theme inline {
@@ -360,6 +389,11 @@
   --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   --animate-orbit: orbit 90s linear infinite;
   --animate-drift: drift 20s ease-in-out infinite alternate;
+  --animate-sheen: sheen 7s cubic-bezier(0.45, 0, 0.25, 1) 2.2s infinite;
+  --animate-scan: scan 3.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  --animate-orbit-slow: orbit 9s linear infinite;
+  --animate-hover: hover 6.5s ease-in-out infinite;
+  --animate-hover-shadow: hover-shadow 6.5s ease-in-out infinite;
 
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(1.25rem); }
@@ -385,6 +419,32 @@
   @keyframes drift {
     from { transform: translate3d(0, 0, 0) scale(1); }
     to { transform: translate3d(6%, -5%, 0) scale(1.12); }
+  }
+
+  /* A glint across polished type: one quick pass, then a long rest. */
+  @keyframes sheen {
+    from { background-position: 100% 0; }
+    24%, to { background-position: 0% 0; }
+  }
+
+  /* A piece on display, hovering a breath above its square — and its
+     shadow, which tightens and fades as the piece rises. */
+  @keyframes hover {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -6px; }
+  }
+
+  @keyframes hover-shadow {
+    0%, 100% { scale: 1; opacity: 1; }
+    50% { scale: 0.84; opacity: 0.72; }
+  }
+
+  /* A scanner's line running down a page, fading in at the top and out at
+     the foot. The element is as tall as the page, so -100% → 0 is one pass. */
+  @keyframes scan {
+    from { translate: 0 -100%; opacity: 0; }
+    14%, 84% { opacity: 1; }
+    to { translate: 0 0; opacity: 0; }
   }
 }
 
@@ -487,6 +547,18 @@ body {
     rgb(44 143 227 / 0.7) 82%,
     transparent
   );
+  /* The Chess ID title, cast in the board's own materials: porcelain at the
+     top running into the brushed silver of its light squares. */
+  --title-metal: linear-gradient(180deg, #ffffff 0%, #e8edf2 40%, #9eafbe 100%);
+  /* A glint crossing it, split into the logo's two colours at its edges. */
+  --title-sheen: linear-gradient(
+    100deg,
+    transparent 40%,
+    rgb(255 170 120 / 0.9) 46.5%,
+    #fff 50%,
+    rgb(140 196 245 / 0.9) 53.5%,
+    transparent 60%
+  );
 }
 
 [data-theme="light"] {
@@ -517,6 +589,17 @@ body {
     rgb(13 27 38 / 0.12) 50%,
     rgb(26 107 189 / 0.55) 82%,
     transparent
+  );
+  /* By day the title is the black pieces' lacquer: deep charcoal settling
+     into the logo's navy. */
+  --title-metal: linear-gradient(180deg, #2b4253 0%, #0d1b26 52%, #0a2f42 100%);
+  --title-sheen: linear-gradient(
+    100deg,
+    transparent 40%,
+    rgb(247 132 72 / 0.85) 46.5%,
+    rgb(255 255 255 / 0.75) 50%,
+    rgb(90 169 236 / 0.85) 53.5%,
+    transparent 60%
   );
 }
 
@@ -567,6 +650,28 @@ body {
   -webkit-backdrop-filter: blur(24px);
 }
 
+/* The Chess ID title: type in the board's materials, and the glint that
+   crosses it. The glint is a second copy of the word laid over the first,
+   because each letter of the first rises on its own and can't share one
+   background. `background-size` makes the band a fraction of the word, and
+   positions 100% → 0% carry it from beyond one edge to beyond the other. */
+.text-metal {
+  background: var(--title-metal);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-sheen {
+  background: var(--title-sheen);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* A hairline in the logo's colours: orange into blue, fading at both ends. */
 .rule-brand {
   height: 1px;
@@ -609,6 +714,17 @@ body {
 .theme-label-light,
 :root[data-theme="light"] .theme-label-dark {
   display: none;
+}
+
+/* Art drawn for one theme, swapped by the page's theme. Keyed to the root,
+   so a subtree pinned to a theme doesn't swap it. */
+.theme-art-light,
+:root[data-theme="light"] .theme-art-dark {
+  display: none;
+}
+
+:root[data-theme="light"] .theme-art-light {
+  display: block;
 }
 
 :root[data-theme="light"] .theme-label-light {

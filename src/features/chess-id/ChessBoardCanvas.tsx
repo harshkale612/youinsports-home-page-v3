@@ -13,18 +13,30 @@ import { cn } from "@/lib/utils";
  * paints first and the board fades in behind it once its first frame is ready.
  * The canvas is created per mount, not rendered by React, so a remount always
  * gets a fresh WebGL context instead of reusing a disposed one.
+ *
+ * `headroom` is the height of the stage's title, in pixels; the opening shot
+ * frames the board below it.
  */
 export function ChessBoardCanvas({
   progress,
+  headroom = 0,
   className,
 }: {
   progress: MotionValue<number>;
+  headroom?: number;
   className?: string;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<ChessBoardScene | null>(null);
+  // Read when the scene is created, so a change of title size never rebuilds it.
+  const headroomRef = useRef(headroom);
   const [status, setStatus] = useState<"loading" | "ready" | "failed">("loading");
   const reducedMotion = usePrefersReducedMotion();
+
+  useEffect(() => {
+    headroomRef.current = headroom;
+    sceneRef.current?.setHeadroom(headroom);
+  }, [headroom]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -53,6 +65,7 @@ export function ChessBoardCanvas({
           return;
         }
         sceneRef.current = scene;
+        scene.setHeadroom(headroomRef.current);
         scene.resize(host.clientWidth, host.clientHeight);
         scene.setProgress(progress.get(), true);
 

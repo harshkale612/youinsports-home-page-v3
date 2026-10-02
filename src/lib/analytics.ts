@@ -40,7 +40,11 @@ export type AnalyticsEvent =
   | "about_cta_clicked"
   // Coming-soon pages
   | "coming_soon_viewed"
-  | "coming_soon_cta_clicked";
+  | "coming_soon_cta_clicked"
+  // Products page
+  | "products_viewed"
+  | "pricing_billing_changed"
+  | "pricing_cta_clicked";
 
 /**
  * Dev-mode logging today; swap the body for a PostHog/Segment call later
