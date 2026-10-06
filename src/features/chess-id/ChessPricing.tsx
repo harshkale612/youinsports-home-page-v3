@@ -1,23 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, CalendarCheck, Check, IndianRupee, RefreshCcw, Sparkles } from "lucide-react";
+import { animate, motion, useInView, useMotionValue, useTransform } from "motion/react";
+import { ArrowRight, Check, DollarSign, Hourglass, Magnet, Scale, Smartphone } from "lucide-react";
 import { BodyText, Container, DisplayText, SectionLabel } from "@/components/ui/Primitives";
 import {
-  CHESS_FEATURES,
-  CHESS_PLANS,
-  yearlySaving,
-  type BillingCycle,
-  type ChessFeature,
-  type ChessPlan,
-} from "@/data/chess-plans";
+  BOARD_PRICE,
+  BOARDS_PER_PHONE,
+  CAP_HOURS,
+  OWN_FEATURES,
+  PGN_VERIFIED_IN,
+  phonesFor,
+  RENT_FEATURES,
+  RENT_TO_OWN_HOURS,
+  RENTAL,
+  rentalEstimate,
+  type OfferFeature,
+} from "@/data/chessboard";
+import { usePrefersReducedMotion } from "@/hooks/useMediaQuery";
 import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 const ease = [0.16, 1, 0.3, 1] as const;
-/** The curve the board's pieces land on, for a piece set down on display. */
+/** The curve the board's pieces land on, for a board set down on display. */
 const land = [0.22, 1, 0.36, 1] as const;
 
 const reveal = {
@@ -26,54 +32,43 @@ const reveal = {
   viewport: { once: true, margin: "-12% 0px" },
 };
 
-const CYCLES: BillingCycle[] = ["monthly", "yearly"];
-const CYCLE_LABEL: Record<BillingCycle, string> = { monthly: "Monthly", yearly: "Yearly" };
-
-const CHESS_TOOLS = CHESS_FEATURES.filter((feature) => feature.group === "chess");
-const ATHLETE = CHESS_FEATURES.filter((feature) => feature.group === "athlete");
-/** The tools Basic's card names when it says what Premium would add. */
-const UPSELL = ["ai-review", "stockfish", "puzzles"].map(
-  (id) => CHESS_TOOLS.find((feature) => feature.id === id)!.title,
-);
-
-const rupees = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+const dollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 /**
- * What a plan costs on a billing cycle, the way the card states it. A yearly
- * plan that also bills monthly is quoted per month, so the two cycles compare
- * like for like, with the monthly price beside it as `was`; a yearly-only
- * plan is quoted for the year.
+ * Renders of the board's own model (the one the stage above plays on), on a
+ * transparent ground so they sit in either theme's display window: set up
+ * for the board you own, mid-game for the boards you rent for an event.
  */
-function quote(plan: ChessPlan, cycle: BillingCycle) {
-  const { monthly, yearly } = plan.prices;
-  if (cycle === "monthly" && monthly !== undefined) {
-    return { amount: monthly, per: "month", note: "Billed every month", was: null };
-  }
-  if (yearly !== undefined && monthly !== undefined) {
-    return { amount: yearly / 12, per: "month", note: `${rupees.format(yearly)} billed once a year`, was: monthly };
-  }
-  return { amount: yearly ?? 0, per: "year", note: "Billed once a year", was: null };
-}
+const ART = {
+  own: {
+    src: "/products/board-set.webp",
+    width: 1400,
+    height: 768,
+    alt: "The smart chessboard with all 32 pieces set up",
+  },
+  rent: {
+    src: "/products/board-in-play.webp",
+    width: 1400,
+    height: 792,
+    alt: "A smart chessboard with a game in progress",
+  },
+};
+
+/** Where the estimators start: a phone's worth of boards to own, two to rent for a club night. */
+const DEFAULT_OWN_BOARDS = BOARDS_PER_PHONE;
+const DEFAULT_RENT_BOARDS = 2 * BOARDS_PER_PHONE;
+const DEFAULT_HOURS = 4;
 
 /**
- * Chess ID's plans, as the two pieces they're named for: Basic is the pawn,
- * where every player starts; Premium the queen, the most powerful piece on
- * the board. Each card opens on its piece, rendered from the board's own
- * models and standing in its own stage light.
+ * The board's two prices: one to own, one by the hour.
  *
- * Premium is the plan the page leads to: the wider card, the same height as
- * Basic, with the logo's colours round its edge and a warm glow beneath it.
- * Both cards follow the page theme, each piece turning black by day so it
- * holds against the paper.
+ * Owning is the card the page leads to: the wider one, with the logo's
+ * colours round its edge and a warm glow beneath it, the board set up in its
+ * window. Both cards work the sum out for you — boards in to own, boards and
+ * hours in to rent, with the rental's minimum and day cap applied as they
+ * bite. Both follow the page theme.
  */
 export function ChessPricing() {
-  const plans = [...CHESS_PLANS].sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
-
   return (
     <section
       id="pricing"
@@ -85,34 +80,43 @@ export function ChessPricing() {
       <Container className="relative max-w-[84rem]">
         <div className="mx-auto max-w-3xl text-center">
           <SectionLabel index="02" className="justify-center">
-            Plans &amp; pricing
+            Pricing
           </SectionLabel>
           <motion.div {...reveal} transition={{ duration: 0.8, ease }}>
             <DisplayText id="pricing-heading" as="h2" className="mt-7">
-              YouInSports <span className="text-brand">Premium</span>
+              Own it, or rent it <span className="text-brand">by the hour</span>
+              <span className="text-accent">.</span>
             </DisplayText>
           </motion.div>
           <motion.div {...reveal} transition={{ duration: 0.8, ease, delay: 0.1 }}>
-            <BodyText className="mx-auto mt-5 max-w-lg">Unlock your full athletic potential.</BodyText>
+            <BodyText className="mx-auto mt-5 max-w-xl">
+              A board of your own for {dollars.format(BOARD_PRICE)}, or as many as your event needs at{" "}
+              {dollars.format(RENTAL.hourly)} a board an hour.
+            </BodyText>
           </motion.div>
         </div>
 
         <ul className="mx-auto mt-14 grid max-w-xl gap-6 lg:mt-20 lg:max-w-[70rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.22fr)] lg:gap-7">
-          {plans.map((plan, i) => (
-            <motion.li
-              key={plan.id}
-              initial={{ opacity: 0, y: 56, scale: 0.97 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: "-8% 0px" }}
-              transition={{ duration: 0.95, ease, delay: i * 0.12 }}
-              // Featured first in the markup, so phones see it first; on
-              // desktop it moves right. No fixed height: the grid stretches
-              // both cards to the row, so side by side they stand the same.
-              className={cn(plan.featured && "lg:order-last")}
-            >
-              <PlanCard plan={plan} />
-            </motion.li>
-          ))}
+          {/* Owning first in the markup, so phones see it first; on desktop
+              it moves right. No fixed height: the grid stretches both cards
+              to the row, so side by side they stand the same. */}
+          <motion.li
+            initial={{ opacity: 0, y: 56, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-8% 0px" }}
+            transition={{ duration: 0.95, ease }}
+            className="lg:order-last"
+          >
+            <OwnCard />
+          </motion.li>
+          <motion.li
+            initial={{ opacity: 0, y: 56, scale: 0.97 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-8% 0px" }}
+            transition={{ duration: 0.95, ease, delay: 0.12 }}
+          >
+            <RentCard />
+          </motion.li>
         </ul>
 
         <motion.ul
@@ -121,9 +125,9 @@ export function ChessPricing() {
           className="mx-auto mt-14 flex max-w-3xl flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[0.82rem] text-muted"
         >
           {[
-            { icon: CalendarCheck, text: "7-day free trial on Premium" },
-            { icon: RefreshCcw, text: "Cancel anytime" },
-            { icon: IndianRupee, text: "Prices in Indian rupees" },
+            { icon: DollarSign, text: "Prices in US dollars" },
+            { icon: Hourglass, text: `Rentals billed by the hour, ${RENTAL.minimumHours}-hour minimum` },
+            { icon: Smartphone, text: `One phone runs up to ${BOARDS_PER_PHONE} boards` },
           ].map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-2">
               <Icon className="size-3.5 text-accent" strokeWidth={2} aria-hidden />
@@ -136,17 +140,143 @@ export function ChessPricing() {
   );
 }
 
-function PlanCard({ plan }: { plan: ChessPlan }) {
-  const featured = Boolean(plan.featured);
-  const [cycle, setCycle] = useState<BillingCycle>(plan.defaultCycle);
-  const cycles = CYCLES.filter((c) => plan.prices[c] !== undefined);
-  const features = featured ? CHESS_TOOLS : ATHLETE;
+function OwnCard() {
+  const [boards, setBoards] = useState(DEFAULT_OWN_BOARDS);
 
-  function choose(next: BillingCycle) {
-    setCycle(next);
-    trackEvent("pricing_billing_changed", { plan: plan.id, cycle: next });
-  }
+  return (
+    <OfferCard id="own" featured>
+      <Showcase art={ART.own} featured label="The board" caption="Set up and ready to record">
+        <span className="absolute top-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-pill px-2.5 py-1 text-[0.66rem] text-fg shadow-[var(--shadow-float)] ring-1 ring-tint/10 ring-inset backdrop-blur-md">
+          <Magnet className="size-3 text-orange-strong" strokeWidth={2.2} aria-hidden />
+          {/* On a phone the full chip would run into the caption beside it. */}
+          <span>
+            64 sensors<span className="hidden sm:inline">, no camera</span>
+          </span>
+        </span>
+      </Showcase>
 
+      <div className="flex flex-1 flex-col px-4 pt-6 pb-4 sm:px-6 sm:pt-7 sm:pb-6">
+        <OfferHeading id="own" name="Own" badge="Yours to keep" featured />
+        <p className="mt-2.5 text-[0.95rem] leading-relaxed text-pretty text-muted">
+          For clubs, coaches and serious players: every game you play on it, recorded.
+        </p>
+
+        <Price amount={BOARD_PRICE} unit="board" className="mt-7" />
+        <p className="mt-2 text-[0.82rem] text-faint">One price for the board, and everything it does.</p>
+
+        <EstimateBox label="Equip your club" featured>
+          <Slider
+            id="own-boards"
+            label={
+              <>
+                Boards<span className="sr-only"> to buy</span>
+              </>
+            }
+            value={boards}
+            min={1}
+            max={RENTAL.maxBoards}
+            onChange={setBoards}
+          >
+            {boards}
+          </Slider>
+          <TotalRow
+            label="Total"
+            value={boards * BOARD_PRICE}
+            detail={`${boards} ${boards === 1 ? "board" : "boards"} × ${dollars.format(BOARD_PRICE)}`}
+          />
+          <EstimateNote icon={Scale}>
+            The same as renting {boards === 1 ? "it" : "them"} for about{" "}
+            <span className="tabular text-fg">{RENT_TO_OWN_HOURS}</span> hours of play
+          </EstimateNote>
+          <PhonesNote boards={boards} />
+        </EstimateBox>
+
+        <span aria-hidden className="rule-brand my-7 block" />
+
+        <ListLabel featured>Everything it does</ListLabel>
+        <FeatureList features={OWN_FEATURES} featured className="sm:grid-cols-2 sm:gap-x-5" />
+
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <span className="mr-1 text-[0.76rem] text-faint">Its games open in</span>
+          {PGN_VERIFIED_IN.map((app) => (
+            <span
+              key={app}
+              className="inline-flex items-center gap-1 rounded-full bg-tag py-1 pr-2.5 pl-2 text-[0.74rem] text-muted ring-1 ring-tint/10 ring-inset"
+            >
+              <Check className="size-3 text-accent" strokeWidth={2.6} aria-hidden />
+              {app}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-auto pt-8">
+          <PlanButton
+            label={boards === 1 ? "Reserve your board" : `Reserve ${boards} boards`}
+            onClick={() => trackEvent("pricing_cta_clicked", { offer: "own", boards, total: boards * BOARD_PRICE })}
+          />
+          <p className="mt-3.5 text-center text-[0.76rem] text-faint">
+            Works with our pairing system, or on its own.
+          </p>
+        </div>
+      </div>
+    </OfferCard>
+  );
+}
+
+function RentCard() {
+  const [boards, setBoards] = useState(DEFAULT_RENT_BOARDS);
+  const [hours, setHours] = useState(DEFAULT_HOURS);
+
+  return (
+    <OfferCard id="rent">
+      <Showcase art={ART.rent} label="In play" caption="Boards for your event">
+        <RentalClock />
+      </Showcase>
+
+      <div className="flex flex-1 flex-col px-4 pt-6 pb-4 sm:px-6 sm:pt-7 sm:pb-6">
+        <OfferHeading id="rent" name="Rent" badge="For events" />
+        <p className="mt-2.5 text-[0.95rem] leading-relaxed text-pretty text-muted">
+          For tournaments, club nights and camps: as many boards as you need, for as long as you play.
+        </p>
+
+        <Price amount={RENTAL.hourly} unit="board / hour" className="mt-7" />
+        <p className="mt-2 text-[0.82rem] leading-relaxed text-faint">
+          Billed for at least {RENTAL.minimumHours} hours, and never more than {dollars.format(RENTAL.dailyCap)} a
+          board in a day.
+        </p>
+
+        <RentalEstimator boards={boards} hours={hours} onBoards={setBoards} onHours={setHours} />
+
+        <span aria-hidden className="my-7 block h-px bg-tint/[0.08]" />
+
+        <ListLabel>What&apos;s included</ListLabel>
+        <FeatureList features={RENT_FEATURES} />
+
+        <div className="mt-auto pt-8">
+          <PlanButton
+            label="Request a rental"
+            onClick={() =>
+              trackEvent("pricing_cta_clicked", {
+                offer: "rent",
+                boards,
+                hours,
+                total: rentalEstimate(boards, hours).total,
+              })
+            }
+          />
+          <p className="mt-3.5 text-center text-[0.76rem] text-faint">Estimates in US dollars, per day of play.</p>
+        </div>
+      </div>
+    </OfferCard>
+  );
+}
+
+/**
+ * A pricing card's frame. The featured card wears the logo's colours round
+ * its edge and stands in a pool of warm light; the other's hairline lights
+ * up in the same colours on hover.
+ */
+function OfferCard({ id, featured, children }: { id: string; featured?: boolean; children: React.ReactNode }) {
   return (
     <div className="group relative isolate h-full">
       {featured && (
@@ -164,7 +294,6 @@ function PlanCard({ plan }: { plan: ChessPlan }) {
         )}
       >
         {!featured && (
-          // Basic's edge lights up in the logo's colours on hover.
           <span
             aria-hidden
             className="absolute inset-0 rounded-[inherit] bg-[linear-gradient(160deg,rgb(var(--orange-rgb)/0.6),rgb(var(--orange-rgb)/0.04)_40%,rgb(var(--accent-rgb)/0.04)_60%,rgb(var(--accent-rgb)/0.7))] opacity-0 transition-opacity duration-500 group-hover:opacity-100"
@@ -172,114 +301,62 @@ function PlanCard({ plan }: { plan: ChessPlan }) {
         )}
 
         <article
-          aria-labelledby={`plan-${plan.id}`}
+          aria-labelledby={`offer-${id}`}
           className={cn(
             "relative flex h-full flex-col overflow-hidden rounded-[calc(2rem-1px)] p-2",
             featured ? "bg-[image:var(--featured-surface)]" : "bg-bg-elevated shadow-[var(--shadow-card)]",
           )}
         >
-          <Showcase plan={plan} featured={featured} />
-
-          <div className="flex flex-1 flex-col px-4 pt-6 pb-4 sm:px-6 sm:pt-7 sm:pb-6">
-            {/* The trial badge sits by the name rather than in the window,
-                where on a phone it would land on the queen's crown. */}
-            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-              <h3
-                id={`plan-${plan.id}`}
-                className="font-display text-[1.9rem] leading-none font-semibold tracking-[-0.03em] text-fg"
-              >
-                {plan.name}
-              </h3>
-              {plan.trialDays && (
-                <span className="inline-flex items-center rounded-full bg-brand-cta px-3 py-1.5 font-display text-[0.58rem] font-bold tracking-[0.16em] whitespace-nowrap text-ink uppercase">
-                  {plan.trialDays}-day free trial
-                </span>
-              )}
-            </div>
-            <p className="mt-2.5 text-[0.95rem] leading-relaxed text-pretty text-muted">{plan.tagline}</p>
-
-            <div className="mt-7 flex flex-wrap items-end justify-between gap-x-6 gap-y-5">
-              <Price plan={plan} cycle={cycle} />
-              {cycles.length > 1 && (
-                <BillingSwitch plan={plan} cycles={cycles} cycle={cycle} onChange={choose} />
-              )}
-            </div>
-
-            <span aria-hidden className={cn("my-7 block h-px", featured ? "rule-brand" : "bg-tint/[0.08]")} />
-
-            {featured && (
-              <>
-                <ListLabel featured>Everything in Basic</ListLabel>
-                <ul className="mt-3.5 flex flex-wrap gap-2">
-                  {ATHLETE.map((feature) => (
-                    <li
-                      key={feature.id}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft py-1 pr-3 pl-2 text-[0.8rem] text-fg ring-1 ring-accent-line ring-inset"
-                    >
-                      <Check className="size-3.5 text-accent-strong" strokeWidth={2.6} aria-hidden />
-                      {feature.title}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-            <ListLabel featured={featured} className={cn(featured && "mt-7")}>
-              {featured ? `Plus ${CHESS_TOOLS.length} chess tools` : "What’s included"}
-            </ListLabel>
-            <motion.ul
-              initial="hidden"
-              whileInView="shown"
-              viewport={{ once: true, margin: "-10% 0px" }}
-              className={cn("mt-4 grid gap-3", featured && "sm:grid-cols-2 sm:gap-x-5")}
-            >
-              {features.map((feature, i) => (
-                <FeatureRow key={feature.id} feature={feature} featured={featured} index={i} />
-              ))}
-            </motion.ul>
-
-            {!featured && (
-              <div className="mt-6 flex gap-3 rounded-2xl bg-orange-soft p-4 ring-1 ring-orange-line/60 ring-inset">
-                <Sparkles className="mt-0.5 size-4 shrink-0 text-orange-strong" strokeWidth={2} aria-hidden />
-                <p className="text-[0.84rem] leading-relaxed text-pretty text-muted">
-                  <span className="font-medium text-fg">Premium adds {CHESS_TOOLS.length} chess tools</span> —{" "}
-                  {UPSELL.slice(0, -1).join(", ")}, {UPSELL.at(-1)} and more.
-                </p>
-              </div>
-            )}
-
-            {/* Last on the card, and pinned to its foot. */}
-            <div className="mt-auto pt-8">
-              <PlanButton
-                label={plan.cta}
-                onClick={() => trackEvent("pricing_cta_clicked", { plan: plan.id, cycle })}
-              />
-              <p className="mt-3.5 text-center text-[0.76rem] text-faint">{plan.note}</p>
-            </div>
-          </div>
+          {children}
         </article>
       </div>
     </div>
   );
 }
 
-/**
- * The card's display window: the plan's piece standing on a sliver of the
- * board, lit from below in the plan's colour — orange for Premium, blue for
- * Basic, as across the rest of the page.
- *
- * The piece is set down on its square as the card arrives, then hovers a
- * breath above it, its shadow tightening as it rises.
- */
-function Showcase({ plan, featured }: { plan: ChessPlan; featured: boolean }) {
-  const { piece } = plan;
-  const swaps = piece.art.light !== piece.art.dark;
-
+function OfferHeading({ id, name, badge, featured }: { id: string; name: string; badge: string; featured?: boolean }) {
   return (
-    <div className="relative h-56 overflow-hidden rounded-[calc(2rem-0.5rem)] bg-[image:var(--showcase-surface)] ring-1 ring-[var(--showcase-edge)] ring-inset sm:h-60">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <h3 id={`offer-${id}`} className="font-display text-[1.9rem] leading-none font-semibold tracking-[-0.03em] text-fg">
+        {name}
+      </h3>
+      <span
+        className={cn(
+          "inline-flex items-center rounded-full px-3 py-1.5 font-display text-[0.58rem] font-bold tracking-[0.16em] whitespace-nowrap uppercase",
+          featured ? "bg-brand-cta text-ink" : "bg-accent-soft text-accent-strong ring-1 ring-accent-line ring-inset",
+        )}
+      >
+        {badge}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The card's display window: the board, rendered from the stage's own model,
+ * lit from below in the card's colour — orange to own, blue to rent, as
+ * across the rest of the page. It is set down as the card arrives, then
+ * hovers a breath above its shadow.
+ */
+function Showcase({
+  art,
+  featured,
+  label,
+  caption,
+  children,
+}: {
+  art: (typeof ART)[keyof typeof ART];
+  featured?: boolean;
+  label: string;
+  caption: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="relative h-60 overflow-hidden rounded-[calc(2rem-0.5rem)] bg-[image:var(--showcase-surface)] ring-1 ring-[var(--showcase-edge)] ring-inset sm:h-72">
       <div
         aria-hidden
         className={cn(
-          "absolute top-[44%] left-1/2 h-[120%] w-[130%] -translate-x-1/2 rounded-[50%] opacity-80 transition-opacity duration-700 group-hover:opacity-100",
+          "absolute top-[48%] left-1/2 h-[110%] w-[125%] -translate-x-1/2 rounded-[50%] opacity-80 transition-opacity duration-700 group-hover:opacity-100",
           featured
             ? "bg-[radial-gradient(closest-side,rgb(var(--orange-rgb)/calc(0.46*var(--glow))),transparent)]"
             : "bg-[radial-gradient(closest-side,rgb(var(--accent-rgb)/calc(0.4*var(--glow))),transparent)]",
@@ -295,177 +372,319 @@ function Showcase({ plan, featured }: { plan: ChessPlan; featured: boolean }) {
         )}
       />
 
-      {/* A sliver of the board, receding from the window's foot. */}
-      <div aria-hidden className="absolute inset-0 perspective-[420px] perspective-origin-[50%_30%]">
-        <div className="absolute inset-x-[-60%] bottom-0 h-[150%] origin-bottom rotate-x-[72deg] bg-[conic-gradient(var(--showcase-square-light)_90deg,var(--showcase-square-dark)_90deg_180deg,var(--showcase-square-light)_180deg_270deg,var(--showcase-square-dark)_270deg)] [background-position:50%_100%] [background-size:4.5rem_4.5rem] [mask-image:radial-gradient(ellipse_32%_55%_at_50%_100%,black_35%,transparent)]" />
-      </div>
-
       <span
         aria-hidden
-        className="absolute bottom-[15%] left-1/2 h-5 w-[7.5rem] -translate-x-1/2 animate-hover-shadow rounded-[50%] bg-[radial-gradient(closest-side,var(--piece-shadow),transparent)]"
+        className="absolute bottom-[8%] left-1/2 h-9 w-[64%] -translate-x-1/2 animate-hover-shadow rounded-[50%] bg-[radial-gradient(closest-side,var(--piece-shadow),transparent)]"
       />
       <motion.div
-        aria-hidden
-        initial={{ y: -48, opacity: 0 }}
+        initial={{ y: -40, opacity: 0 }}
         whileInView={{ y: 0, opacity: 1 }}
         viewport={{ once: true, margin: "-10% 0px" }}
         transition={{ duration: 1, ease: land, delay: 0.3 }}
-        className="absolute bottom-[12%] left-1/2 aspect-[4/5] h-[84%] -translate-x-1/2"
+        className="absolute inset-x-[6%] top-[22%] bottom-[11%]"
       >
-        <div className="size-full animate-hover transition-[scale] duration-700 ease-out group-hover:scale-[1.04]">
+        <div className="size-full animate-hover transition-[scale] duration-700 ease-out group-hover:scale-[1.035]">
           <Image
-            src={piece.art.dark}
-            alt=""
-            width={720}
-            height={900}
-            sizes="(min-width: 640px) 12rem, 10rem"
+            src={art.src}
+            alt={art.alt}
+            width={art.width}
+            height={art.height}
+            sizes="(min-width: 1024px) 36rem, (min-width: 640px) 34rem, 92vw"
             draggable={false}
-            className={cn("size-full object-contain select-none", swaps && "theme-art-dark")}
+            className="size-full object-contain select-none"
           />
-          {swaps && (
-            <Image
-              src={piece.art.light}
-              alt=""
-              width={720}
-              height={900}
-              sizes="(min-width: 640px) 12rem, 10rem"
-              draggable={false}
-              className="theme-art-light size-full object-contain select-none"
-            />
-          )}
         </div>
       </motion.div>
 
-      <div className="absolute bottom-4 left-5">
-        <p className="font-display text-[0.58rem] font-semibold tracking-[0.24em] text-fg uppercase">{piece.name}</p>
-        <p className="mt-1 text-[0.72rem] text-muted">{piece.caption}</p>
+      <div className="absolute top-4 left-5">
+        <p className="font-display text-[0.58rem] font-semibold tracking-[0.24em] text-fg uppercase">{label}</p>
+        <p className="mt-1 text-[0.72rem] text-muted">{caption}</p>
       </div>
-
+      {children}
     </div>
   );
 }
 
 /**
- * The price, which rolls over when the cycle changes. On a yearly plan that
- * could also be paid monthly, the monthly price sits beside it, struck out.
+ * A rental's clock, running while the card is on screen. The hours are what
+ * the card is priced in, so its window keeps time.
  */
-function Price({ plan, cycle }: { plan: ChessPlan; cycle: BillingCycle }) {
-  const { amount, per, note, was } = quote(plan, cycle);
-  const parts = rupees.formatToParts(amount);
-  const symbol = parts.find((part) => part.type === "currency")?.value ?? "₹";
-  const whole = parts
-    .filter((part) => part.type === "integer" || part.type === "group")
-    .map((part) => part.value)
-    .join("");
-  const fraction = parts.find((part) => part.type === "fraction")?.value ?? "00";
+function RentalClock() {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { margin: "-10% 0px" });
+  const reduced = usePrefersReducedMotion();
+  const [seconds, setSeconds] = useState(2 * 3600 + 14 * 60 + 36);
+
+  useEffect(() => {
+    if (!inView || reduced) return;
+    const id = window.setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [inView, reduced]);
+
+  const clock = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
+    .map((part) => String(part).padStart(2, "0"))
+    .join(":");
 
   return (
-    <div aria-live="polite">
-      <div className="flex items-end gap-3">
-        <p className="relative flex h-[3.5rem] items-end overflow-hidden pr-0.5 font-display leading-none font-semibold tracking-[-0.045em] text-fg sm:h-[3.9rem]">
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.span
-              key={amount}
-              initial={{ y: "75%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "-75%", opacity: 0 }}
-              transition={{ duration: 0.5, ease }}
-              className="tabular flex items-start"
-            >
-              <span className="mt-[0.35rem] mr-0.5 text-[1.45rem] font-medium text-muted sm:text-[1.6rem]">{symbol}</span>
-              <span className="text-[3.25rem] sm:text-[3.6rem]">{whole}</span>
-              <span className="mt-[0.35rem] text-[1.45rem] sm:text-[1.6rem]">.{fraction}</span>
-            </motion.span>
-          </AnimatePresence>
-        </p>
-        <div className="pb-1.5 leading-tight">
-          <AnimatePresence initial={false}>
-            {was !== null && (
-              <motion.s
-                key="was"
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 4 }}
-                transition={{ duration: 0.3, ease }}
-                className="tabular block text-[0.8rem] text-faint decoration-orange-strong/70"
-              >
-                <span className="sr-only">Monthly plan: </span>
-                {rupees.format(was)}
-              </motion.s>
-            )}
-          </AnimatePresence>
-          <span className="block text-[0.85rem] text-muted">/ {per}</span>
-        </div>
-      </div>
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.p
-          key={note}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -6 }}
-          transition={{ duration: 0.3, ease }}
-          className="mt-2 text-[0.82rem] text-faint"
-        >
-          {note}
-        </motion.p>
-      </AnimatePresence>
+    <span
+      ref={ref}
+      aria-hidden
+      className="absolute top-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-pill px-2.5 py-1 font-mono text-[0.66rem] text-fg shadow-[var(--shadow-float)] ring-1 ring-tint/10 ring-inset backdrop-blur-md"
+    >
+      <span className="size-1.5 animate-pulse rounded-full bg-accent shadow-[0_0_6px_rgb(var(--accent-rgb)/var(--glow))]" />
+      <span className="tabular">{clock}</span>
+    </span>
+  );
+}
+
+/** A dollar price, with its unit beside it. */
+function Price({ amount, unit, className }: { amount: number; unit: string; className?: string }) {
+  return (
+    <div className={cn("flex items-end gap-3", className)}>
+      <p className="sr-only">
+        {dollars.format(amount)} per {unit.replace(" / ", " per ")}
+      </p>
+      <p aria-hidden className="flex items-start font-display leading-none font-semibold tracking-[-0.045em] text-fg">
+        <span className="mt-[0.35rem] mr-0.5 text-[1.45rem] font-medium text-muted sm:text-[1.6rem]">$</span>
+        <span className="tabular text-[3.25rem] sm:text-[3.6rem]">{amount}</span>
+      </p>
+      <span aria-hidden className="pb-1.5 text-[0.85rem] leading-tight text-muted">
+        / {unit}
+      </span>
     </div>
   );
 }
 
 /**
- * Monthly or yearly. Native radios underneath, so the arrow keys move between
- * cycles as in any radio group; a porcelain pill — the white pieces' finish —
- * slides to the one chosen.
+ * Boards and hours in, the day's total out. The minimum and the day cap are
+ * applied as they bite, and named when they do, so the total never jumps
+ * without a reason on screen.
  */
-function BillingSwitch({
-  plan,
-  cycles,
-  cycle,
-  onChange,
+function RentalEstimator({
+  boards,
+  hours,
+  onBoards,
+  onHours,
 }: {
-  plan: ChessPlan;
-  cycles: BillingCycle[];
-  cycle: BillingCycle;
-  onChange: (cycle: BillingCycle) => void;
+  boards: number;
+  hours: number;
+  onBoards: (boards: number) => void;
+  onHours: (hours: number) => void;
 }) {
-  const saving = yearlySaving(plan);
+  const { total, perBoard, billedHours, capped } = rentalEstimate(boards, hours);
+  const rule = capped
+    ? `Day cap: ${dollars.format(RENTAL.dailyCap)} a board`
+    : hours < RENTAL.minimumHours
+      ? `${RENTAL.minimumHours}-hour minimum`
+      : `${billedHours} h × ${dollars.format(RENTAL.hourly)}`;
 
   return (
-    <fieldset className="flex rounded-full bg-tint/[0.06] p-1 ring-1 ring-tint/10 ring-inset">
-      <legend className="sr-only">Billing for {plan.name}</legend>
-      {cycles.map((option) => (
-        <label
-          key={option}
-          className={cn(
-            "relative flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-[0.74rem] font-semibold whitespace-nowrap transition-colors duration-300 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent",
-            option === cycle ? "text-ink" : "text-muted hover:text-fg",
-          )}
-        >
-          <input
-            type="radio"
-            name={`${plan.id}-billing`}
-            value={option}
-            checked={option === cycle}
-            onChange={() => onChange(option)}
-            className="sr-only"
-          />
-          {option === cycle && (
-            <motion.span
-              layoutId={`${plan.id}-billing-pill`}
-              transition={{ type: "spring", stiffness: 420, damping: 36 }}
-              className="absolute inset-0 rounded-full bg-[image:var(--switch-pill)] shadow-[var(--switch-pill-shadow)]"
-            />
-          )}
-          <span className="relative">{CYCLE_LABEL[option]}</span>
-          {option === "yearly" && saving && (
-            <span className="relative rounded-full bg-brand-cta px-1.5 py-px text-[0.6rem] font-bold text-ink">
-              −{saving}%
-            </span>
-          )}
+    <EstimateBox label="Estimate your event">
+      <Slider
+        id="rental-boards"
+        label={
+          <>
+            Boards<span className="sr-only"> to rent</span>
+          </>
+        }
+        value={boards}
+        min={1}
+        max={RENTAL.maxBoards}
+        onChange={onBoards}
+      >
+        {boards}
+      </Slider>
+      <Slider
+        id="rental-hours"
+        label="Hours"
+        value={hours}
+        min={1}
+        max={RENTAL.maxHours}
+        onChange={onHours}
+        mark={{ at: CAP_HOURS, label: "Day cap" }}
+      >
+        {hours} h
+      </Slider>
+
+      <TotalRow
+        label="Estimated total"
+        value={total}
+        detail={`${boards} ${boards === 1 ? "board" : "boards"} × ${dollars.format(perBoard)}`}
+      >
+        <span className={cn("transition-colors duration-300", capped ? "text-orange-strong" : "text-faint")}>
+          {rule}
+        </span>
+      </TotalRow>
+      <PhonesNote boards={boards} />
+    </EstimateBox>
+  );
+}
+
+/** How many phones a set of boards needs, one for every four. */
+function PhonesNote({ boards }: { boards: number }) {
+  const phones = phonesFor(boards);
+  return (
+    <EstimateNote icon={Smartphone}>
+      Runs on <span className="tabular text-fg">{phones}</span> {phones === 1 ? "phone" : "phones"}, one for every{" "}
+      {BOARDS_PER_PHONE} boards
+    </EstimateNote>
+  );
+}
+
+/** The panel a card's calculator sits in. */
+function EstimateBox({ label, featured, children }: { label: string; featured?: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "mt-6 rounded-2xl p-4 ring-1 ring-inset sm:p-5",
+        featured
+          ? "bg-[linear-gradient(160deg,rgb(var(--orange-rgb)/calc(0.08*var(--glow)+0.02)),transparent_60%)] ring-orange-line/60"
+          : "bg-tint/[0.035] ring-tint/10",
+      )}
+    >
+      <ListLabel featured={featured}>{label}</ListLabel>
+      {children}
+    </div>
+  );
+}
+
+/** A calculator's answer: the total on the left, how it was reached on the right. */
+function TotalRow({
+  label,
+  value,
+  detail,
+  children,
+}: {
+  label: string;
+  value: number;
+  detail: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div className="mt-5 flex items-end justify-between gap-4 border-t border-tint/[0.08] pt-4">
+      <div>
+        <p className="text-[0.72rem] text-faint">{label}</p>
+        <RollingTotal label={label} value={value} />
+      </div>
+      <p className="pb-1 text-right text-[0.74rem] leading-snug text-muted">
+        <span className="tabular">{detail}</span>
+        {children && (
+          <>
+            <br />
+            {children}
+          </>
+        )}
+      </p>
+    </div>
+  );
+}
+
+function EstimateNote({
+  icon: Icon,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
+  return (
+    <p className="mt-3 flex items-center gap-1.5 text-[0.74rem] text-muted">
+      <Icon className="size-3.5 shrink-0 text-accent" aria-hidden />
+      <span>{children}</span>
+    </p>
+  );
+}
+
+/** Where a slider's thumb centre sits for `value`, as a length along its track. */
+function along(value: number, min: number, max: number) {
+  return `calc(0.625rem + (100% - 1.25rem) * ${(value - min) / (max - min)})`;
+}
+
+function Slider({
+  id,
+  label,
+  value,
+  min,
+  max,
+  onChange,
+  mark,
+  children,
+}: {
+  id: string;
+  label: React.ReactNode;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+  /** A point on the track worth naming, e.g. where the day cap starts. */
+  mark?: { at: number; label: string };
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mt-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <label htmlFor={id} className="text-[0.86rem] text-fg">
+          {label}
         </label>
-      ))}
-    </fieldset>
+        <output htmlFor={id} className="tabular font-display text-[0.95rem] font-semibold text-fg">
+          {children}
+        </output>
+      </div>
+      <input
+        id={id}
+        type="range"
+        min={min}
+        max={max}
+        step={1}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="range-brand mt-2 block w-full"
+        style={{ "--fill": along(value, min, max) } as React.CSSProperties}
+      />
+      {mark && (
+        <div aria-hidden className="relative mt-1 h-4 text-[0.62rem] text-faint">
+          <span className="absolute top-0 left-0">{min} h</span>
+          <span
+            className={cn(
+              "absolute top-0 -translate-x-1/2 whitespace-nowrap transition-colors duration-300",
+              value >= mark.at && "text-orange-strong",
+            )}
+            style={{ left: along(mark.at, min, max) }}
+          >
+            ▴ {mark.label}
+          </span>
+          <span className="absolute top-0 right-0">{max} h</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * The total, counting to each new figure rather than jumping, so dragging a
+ * slider reads as one sum changing. Screen readers get the settled figure.
+ */
+function RollingTotal({ label, value }: { label: string; value: number }) {
+  const reduced = usePrefersReducedMotion();
+  const shown = useMotionValue(value);
+  const text = useTransform(shown, (v) => dollars.format(Math.round(v)));
+
+  useEffect(() => {
+    const controls = animate(shown, value, { duration: reduced ? 0 : 0.45, ease });
+    return () => controls.stop();
+  }, [shown, value, reduced]);
+
+  return (
+    <>
+      <motion.p
+        aria-hidden
+        className="tabular mt-1 font-display text-[2.1rem] leading-none font-semibold tracking-[-0.035em] text-fg"
+      >
+        {text}
+      </motion.p>
+      <p aria-live="polite" className="sr-only">
+        {label} {dollars.format(value)}
+      </p>
+    </>
   );
 }
 
@@ -474,7 +693,7 @@ function ListLabel({
   className,
   children,
 }: {
-  featured: boolean;
+  featured?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -491,36 +710,56 @@ function ListLabel({
   );
 }
 
-function FeatureRow({ feature, featured, index }: { feature: ChessFeature; featured: boolean; index: number }) {
-  const Icon = feature.icon;
+function FeatureList({
+  features,
+  featured,
+  className,
+}: {
+  features: OfferFeature[];
+  featured?: boolean;
+  className?: string;
+}) {
   return (
-    <motion.li
-      variants={{
-        hidden: { opacity: 0, y: 8 },
-        shown: { opacity: 1, y: 0, transition: { duration: 0.5, ease, delay: 0.15 + index * 0.05 } },
-      }}
-      className="flex items-center gap-3 text-[0.9rem] leading-snug text-fg"
+    <motion.ul
+      initial="hidden"
+      whileInView="shown"
+      viewport={{ once: true, margin: "-10% 0px" }}
+      className={cn("mt-4 grid gap-3", className)}
     >
-      <span
-        aria-hidden
-        className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-[0.65rem] ring-1 ring-inset",
-          featured
-            ? "bg-orange-soft text-orange-strong ring-orange-line"
-            : "bg-accent-soft text-accent-strong ring-accent-line",
-        )}
-      >
-        <Icon className="size-4" strokeWidth={1.9} />
-      </span>
-      {feature.title}
-    </motion.li>
+      {features.map((feature, index) => {
+        const Icon = feature.icon;
+        return (
+          <motion.li
+            key={feature.label}
+            variants={{
+              hidden: { opacity: 0, y: 8 },
+              shown: { opacity: 1, y: 0, transition: { duration: 0.5, ease, delay: 0.15 + index * 0.05 } },
+            }}
+            className="flex items-center gap-3 text-[0.9rem] leading-snug text-fg"
+          >
+            <span
+              aria-hidden
+              className={cn(
+                "flex size-8 shrink-0 items-center justify-center rounded-[0.65rem] ring-1 ring-inset",
+                featured
+                  ? "bg-orange-soft text-orange-strong ring-orange-line"
+                  : "bg-accent-soft text-accent-strong ring-accent-line",
+              )}
+            >
+              <Icon className="size-4" strokeWidth={1.9} />
+            </span>
+            {feature.label}
+          </motion.li>
+        );
+      })}
+    </motion.ul>
   );
 }
 
 /**
- * The plan's call to action, the same lit orange on both cards. A plain
- * button, and it goes nowhere yet: checkout isn't on this site. On hover a
- * glint crosses it.
+ * A card's call to action, the same lit orange on both. A plain button, and
+ * it goes nowhere yet: ordering isn't on this site. On hover a glint crosses
+ * it.
  */
 function PlanButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (

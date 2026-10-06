@@ -43,7 +43,6 @@ export type AnalyticsEvent =
   | "coming_soon_cta_clicked"
   // Products page
   | "products_viewed"
-  | "pricing_billing_changed"
   | "pricing_cta_clicked";
 
 /**

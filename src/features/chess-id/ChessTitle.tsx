@@ -7,13 +7,13 @@ import { usePrefersReducedMotion } from "@/hooks/useMediaQuery";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-const LETTERS = "Chess".split("");
+const LETTERS = "Chessboard".split("");
 const STAGGER = 0.055;
 
 const TAGLINE = [
-  { text: "Scan your scoresheet." },
-  { text: "Review every move." },
-  { text: "Master your game.", strong: true },
+  { text: "Real pieces." },
+  { text: "Real board." },
+  { text: "Real record.", strong: true },
 ].flatMap((phrase) => phrase.text.split(" ").map((word) => ({ word, strong: phrase.strong })));
 
 /** Share of the story's scroll over which the title clears the stage. */
@@ -30,7 +30,8 @@ const EXIT = 0.1;
  *
  * The type is sized against the viewport's height as well as its width, so on
  * a short laptop screen the title stays a band above the board rather than
- * taking half the stage.
+ * taking half the stage. The width term is set for the whole ten-letter word,
+ * so on a phone it still fits the screen with the page's margins either side.
  */
 export function ChessTitle({ progress }: { progress: MotionValue<number> }) {
   const reducedMotion = usePrefersReducedMotion();
@@ -65,8 +66,8 @@ export function ChessTitle({ progress }: { progress: MotionValue<number> }) {
         <span className="h-px w-7 bg-gradient-to-l from-transparent to-orange sm:w-10" aria-hidden />
       </motion.p>
 
-      <h1 id="chess-heading" className="relative mt-[clamp(0.6rem,1.6svh,1.1rem)] font-display text-[clamp(3rem,min(23vw,12.5svh),8.75rem)] leading-[0.9] font-semibold tracking-[-0.05em]">
-        <span className="sr-only">Chess</span>
+      <h1 id="chess-heading" className="relative mt-[clamp(0.6rem,1.6svh,1.1rem)] font-display text-[clamp(2.5rem,min(15.5vw,12.5svh),8.75rem)] leading-[0.9] font-semibold tracking-[-0.05em]">
+        <span className="sr-only">Chessboard</span>
         {/* Each letter rises out of the same slot; the padding gives the
             descenders room inside the clip and the negative margin takes it
             back out of the layout. The sides get room too, so the last

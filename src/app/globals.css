@@ -394,6 +394,7 @@
   --animate-orbit-slow: orbit 9s linear infinite;
   --animate-hover: hover 6.5s ease-in-out infinite;
   --animate-hover-shadow: hover-shadow 6.5s ease-in-out infinite;
+  --animate-signal: signal 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 
   @keyframes fade-up {
     from { opacity: 0; transform: translateY(1.25rem); }
@@ -444,6 +445,15 @@
   @keyframes scan {
     from { translate: 0 -100%; opacity: 0; }
     14%, 84% { opacity: 1; }
+    to { translate: 0 0; opacity: 0; }
+  }
+
+  /* A reading travelling along a link from a board to the phone. The element
+     is as long as the link with the dot at its far end, so -100% → 0 is one
+     trip. */
+  @keyframes signal {
+    from { translate: -100% 0; opacity: 0; }
+    20%, 80% { opacity: 1; }
     to { translate: 0 0; opacity: 0; }
   }
 }
@@ -677,6 +687,60 @@ body {
   height: 1px;
   background: var(--brand-rule);
 }
+
+/* A slider in the logo's colours: the track fills orange into blue up to the
+   thumb (`--fill`, set by the page, for WebKit; Firefox fills it natively),
+   and the thumb is porcelain, the white pieces' finish, like the switch pill. */
+.range-brand {
+  appearance: none;
+  height: 1.25rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.range-brand::-webkit-slider-runnable-track {
+  height: 0.375rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, var(--brand-orange), var(--brand-blue)) 0 0 / var(--fill, 0%) 100% no-repeat,
+    color-mix(in oklab, var(--tint) 11%, transparent);
+}
+
+.range-brand::-moz-range-track {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--tint) 11%, transparent);
+}
+
+.range-brand::-moz-range-progress {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand-orange), var(--brand-blue));
+}
+
+.range-brand::-webkit-slider-thumb {
+  appearance: none;
+  margin-top: -0.4375rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--switch-pill);
+  box-shadow: var(--switch-pill-shadow), 0 0 0 4px rgb(var(--orange-rgb) / calc(0.2 * var(--glow) + 0.06));
+  transition: scale 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.range-brand::-moz-range-thumb {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--switch-pill);
+  box-shadow: var(--switch-pill-shadow), 0 0 0 4px rgb(var(--orange-rgb) / calc(0.2 * var(--glow) + 0.06));
+  transition: scale 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.range-brand:active::-webkit-slider-thumb { scale: 1.15; }
+.range-brand:active::-moz-range-thumb { scale: 1.15; }
 
 .text-balance { text-wrap: balance; }
 .text-pretty { text-wrap: pretty; }
