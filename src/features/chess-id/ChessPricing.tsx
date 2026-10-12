@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { animate, motion, useInView, useMotionValue, useTransform } from "motion/react";
-import { ArrowRight, Check, DollarSign, Hourglass, Magnet, Scale, Smartphone } from "lucide-react";
+import { animate, motion, useMotionValue, useTransform } from "motion/react";
+import { ArrowRight, Check, DollarSign, Hourglass, Magnet, Smartphone } from "lucide-react";
 import { BodyText, Container, DisplayText, SectionLabel } from "@/components/ui/Primitives";
 import {
   BOARD_PRICE,
@@ -13,7 +13,6 @@ import {
   PGN_VERIFIED_IN,
   phonesFor,
   RENT_FEATURES,
-  RENT_TO_OWN_HOURS,
   RENTAL,
   rentalEstimate,
   type OfferFeature,
@@ -54,8 +53,7 @@ const ART = {
   },
 };
 
-/** Where the estimators start: a phone's worth of boards to own, two to rent for a club night. */
-const DEFAULT_OWN_BOARDS = BOARDS_PER_PHONE;
+/** Where the rental estimator starts: two phones' worth of boards, for a club night. */
 const DEFAULT_RENT_BOARDS = 2 * BOARDS_PER_PHONE;
 const DEFAULT_HOURS = 4;
 
@@ -64,9 +62,9 @@ const DEFAULT_HOURS = 4;
  *
  * Owning is the card the page leads to: the wider one, with the logo's
  * colours round its edge and a warm glow beneath it, the board set up in its
- * window. Both cards work the sum out for you — boards in to own, boards and
- * hours in to rent, with the rental's minimum and day cap applied as they
- * bite. Both follow the page theme.
+ * window, and everything the board does listed under its price. The rental
+ * works the sum out for you — boards and hours in, with the day cap applied
+ * once it bites. Both follow the page theme.
  */
 export function ChessPricing() {
   return (
@@ -99,7 +97,9 @@ export function ChessPricing() {
         <ul className="mx-auto mt-14 grid max-w-xl gap-6 lg:mt-20 lg:max-w-[70rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.22fr)] lg:gap-7">
           {/* Owning first in the markup, so phones see it first; on desktop
               it moves right. No fixed height: the grid stretches both cards
-              to the row, so side by side they stand the same. */}
+              to the row, and the shorter card's display window takes up the
+              difference, so side by side they stand the same with no gap
+              left hanging above either button. */}
           <motion.li
             initial={{ opacity: 0, y: 56, scale: 0.97 }}
             whileInView={{ opacity: 1, y: 0, scale: 1 }}
@@ -126,7 +126,7 @@ export function ChessPricing() {
         >
           {[
             { icon: DollarSign, text: "Prices in US dollars" },
-            { icon: Hourglass, text: `Rentals billed by the hour, ${RENTAL.minimumHours}-hour minimum` },
+            { icon: Hourglass, text: "Rentals billed by the hour" },
             { icon: Smartphone, text: `One phone runs up to ${BOARDS_PER_PHONE} boards` },
           ].map(({ icon: Icon, text }) => (
             <li key={text} className="flex items-center gap-2">
@@ -141,8 +141,6 @@ export function ChessPricing() {
 }
 
 function OwnCard() {
-  const [boards, setBoards] = useState(DEFAULT_OWN_BOARDS);
-
   return (
     <OfferCard id="own" featured>
       <Showcase art={ART.own} featured label="The board" caption="Set up and ready to record">
@@ -155,7 +153,7 @@ function OwnCard() {
         </span>
       </Showcase>
 
-      <div className="flex flex-1 flex-col px-4 pt-6 pb-4 sm:px-6 sm:pt-7 sm:pb-6">
+      <div className="flex flex-col px-4 pt-6 pb-4 sm:px-6 sm:pt-7 sm:pb-6">
         <OfferHeading id="own" name="Own" badge="Yours to keep" featured />
         <p className="mt-2.5 text-[0.95rem] leading-relaxed text-pretty text-muted">
           For clubs, coaches and serious players: every game you play on it, recorded.
@@ -164,39 +162,12 @@ function OwnCard() {
         <Price amount={BOARD_PRICE} unit="board" className="mt-7" />
         <p className="mt-2 text-[0.82rem] text-faint">One price for the board, and everything it does.</p>
 
-        <EstimateBox label="Equip your club" featured>
-          <Slider
-            id="own-boards"
-            label={
-              <>
-                Boards<span className="sr-only"> to buy</span>
-              </>
-            }
-            value={boards}
-            min={1}
-            max={RENTAL.maxBoards}
-            onChange={setBoards}
-          >
-            {boards}
-          </Slider>
-          <TotalRow
-            label="Total"
-            value={boards * BOARD_PRICE}
-            detail={`${boards} ${boards === 1 ? "board" : "boards"} × ${dollars.format(BOARD_PRICE)}`}
-          />
-          <EstimateNote icon={Scale}>
-            The same as renting {boards === 1 ? "it" : "them"} for about{" "}
-            <span className="tabular text-fg">{RENT_TO_OWN_HOURS}</span> hours of play
-          </EstimateNote>
-          <PhonesNote boards={boards} />
-        </EstimateBox>
-
         <span aria-hidden className="rule-brand my-7 block" />
 
         <ListLabel featured>Everything it does</ListLabel>
-        <FeatureList features={OWN_FEATURES} featured className="sm:grid-cols-2 sm:gap-x-5" />
+        <FeatureList features={OWN_FEATURES} featured className="mt-5 gap-4" />
 
-        <div className="mt-6 flex flex-wrap items-center gap-2">
+        <div className="mt-7 flex flex-wrap items-center gap-2">
           <span className="mr-1 text-[0.76rem] text-faint">Its games open in</span>
           {PGN_VERIFIED_IN.map((app) => (
             <span
@@ -209,10 +180,10 @@ function OwnCard() {
           ))}
         </div>
 
-        <div className="mt-auto pt-8">
+        <div className="pt-8">
           <PlanButton
-            label={boards === 1 ? "Reserve your board" : `Reserve ${boards} boards`}
-            onClick={() => trackEvent("pricing_cta_clicked", { offer: "own", boards, total: boards * BOARD_PRICE })}
+            label="Reserve your board"
+            onClick={() => trackEvent("pricing_cta_clicked", { offer: "own", price: BOARD_PRICE })}
           />
           <p className="mt-3.5 text-center text-[0.76rem] text-faint">
             Works with our pairing system, or on its own.
@@ -229,11 +200,9 @@ function RentCard() {
 
   return (
     <OfferCard id="rent">
-      <Showcase art={ART.rent} label="In play" caption="Boards for your event">
-        <RentalClock />
-      </Showcase>
+      <Showcase art={ART.rent} label="In play" caption="Boards for your event" />
 
-      <div className="flex flex-1 flex-col px-4 pt-6 pb-4 sm:px-6 sm:pt-7 sm:pb-6">
+      <div className="flex flex-col px-4 pt-6 pb-4 sm:px-6 sm:pt-7 sm:pb-6">
         <OfferHeading id="rent" name="Rent" badge="For events" />
         <p className="mt-2.5 text-[0.95rem] leading-relaxed text-pretty text-muted">
           For tournaments, club nights and camps: as many boards as you need, for as long as you play.
@@ -241,8 +210,7 @@ function RentCard() {
 
         <Price amount={RENTAL.hourly} unit="board / hour" className="mt-7" />
         <p className="mt-2 text-[0.82rem] leading-relaxed text-faint">
-          Billed for at least {RENTAL.minimumHours} hours, and never more than {dollars.format(RENTAL.dailyCap)} a
-          board in a day.
+          Billed for the hours you play, and never more than {dollars.format(RENTAL.dailyCap)} a board in a day.
         </p>
 
         <RentalEstimator boards={boards} hours={hours} onBoards={setBoards} onHours={setHours} />
@@ -252,7 +220,7 @@ function RentCard() {
         <ListLabel>What&apos;s included</ListLabel>
         <FeatureList features={RENT_FEATURES} />
 
-        <div className="mt-auto pt-8">
+        <div className="pt-8">
           <PlanButton
             label="Request a rental"
             onClick={() =>
@@ -336,7 +304,9 @@ function OfferHeading({ id, name, badge, featured }: { id: string; name: string;
  * The card's display window: the board, rendered from the stage's own model,
  * lit from below in the card's colour — orange to own, blue to rent, as
  * across the rest of the page. It is set down as the card arrives, then
- * hovers a breath above its shadow.
+ * hovers a breath above its shadow. On desktop it grows into whatever height
+ * its card has spare beside the other one, so the board takes the room
+ * rather than an empty gap.
  */
 function Showcase({
   art,
@@ -352,7 +322,7 @@ function Showcase({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="relative h-60 overflow-hidden rounded-[calc(2rem-0.5rem)] bg-[image:var(--showcase-surface)] ring-1 ring-[var(--showcase-edge)] ring-inset sm:h-72">
+    <div className="relative h-60 shrink-0 overflow-hidden rounded-[calc(2rem-0.5rem)] bg-[image:var(--showcase-surface)] ring-1 ring-[var(--showcase-edge)] ring-inset sm:h-72 lg:h-auto lg:min-h-72 lg:grow">
       <div
         aria-hidden
         className={cn(
@@ -405,38 +375,6 @@ function Showcase({
   );
 }
 
-/**
- * A rental's clock, running while the card is on screen. The hours are what
- * the card is priced in, so its window keeps time.
- */
-function RentalClock() {
-  const ref = useRef<HTMLSpanElement>(null);
-  const inView = useInView(ref, { margin: "-10% 0px" });
-  const reduced = usePrefersReducedMotion();
-  const [seconds, setSeconds] = useState(2 * 3600 + 14 * 60 + 36);
-
-  useEffect(() => {
-    if (!inView || reduced) return;
-    const id = window.setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => window.clearInterval(id);
-  }, [inView, reduced]);
-
-  const clock = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
-    .map((part) => String(part).padStart(2, "0"))
-    .join(":");
-
-  return (
-    <span
-      ref={ref}
-      aria-hidden
-      className="absolute top-4 right-4 inline-flex items-center gap-1.5 rounded-full bg-pill px-2.5 py-1 font-mono text-[0.66rem] text-fg shadow-[var(--shadow-float)] ring-1 ring-tint/10 ring-inset backdrop-blur-md"
-    >
-      <span className="size-1.5 animate-pulse rounded-full bg-accent shadow-[0_0_6px_rgb(var(--accent-rgb)/var(--glow))]" />
-      <span className="tabular">{clock}</span>
-    </span>
-  );
-}
-
 /** A dollar price, with its unit beside it. */
 function Price({ amount, unit, className }: { amount: number; unit: string; className?: string }) {
   return (
@@ -456,9 +394,9 @@ function Price({ amount, unit, className }: { amount: number; unit: string; clas
 }
 
 /**
- * Boards and hours in, the day's total out. The minimum and the day cap are
- * applied as they bite, and named when they do, so the total never jumps
- * without a reason on screen.
+ * Boards and hours in, the day's total out. The day cap is applied once it
+ * bites, and named when it does, so the total never stops climbing without a
+ * reason on screen.
  */
 function RentalEstimator({
   boards,
@@ -471,12 +409,10 @@ function RentalEstimator({
   onBoards: (boards: number) => void;
   onHours: (hours: number) => void;
 }) {
-  const { total, perBoard, billedHours, capped } = rentalEstimate(boards, hours);
+  const { total, perBoard, capped } = rentalEstimate(boards, hours);
   const rule = capped
     ? `Day cap: ${dollars.format(RENTAL.dailyCap)} a board`
-    : hours < RENTAL.minimumHours
-      ? `${RENTAL.minimumHours}-hour minimum`
-      : `${billedHours} h × ${dollars.format(RENTAL.hourly)}`;
+    : `${hours} h × ${dollars.format(RENTAL.hourly)}`;
 
   return (
     <EstimateBox label="Estimate your event">
@@ -532,17 +468,10 @@ function PhonesNote({ boards }: { boards: number }) {
 }
 
 /** The panel a card's calculator sits in. */
-function EstimateBox({ label, featured, children }: { label: string; featured?: boolean; children: React.ReactNode }) {
+function EstimateBox({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div
-      className={cn(
-        "mt-6 rounded-2xl p-4 ring-1 ring-inset sm:p-5",
-        featured
-          ? "bg-[linear-gradient(160deg,rgb(var(--orange-rgb)/calc(0.08*var(--glow)+0.02)),transparent_60%)] ring-orange-line/60"
-          : "bg-tint/[0.035] ring-tint/10",
-      )}
-    >
-      <ListLabel featured={featured}>{label}</ListLabel>
+    <div className="mt-6 rounded-2xl bg-tint/[0.035] p-4 ring-1 ring-tint/10 ring-inset sm:p-5">
+      <ListLabel>{label}</ListLabel>
       {children}
     </div>
   );
@@ -748,7 +677,14 @@ function FeatureList({
             >
               <Icon className="size-4" strokeWidth={1.9} />
             </span>
-            {feature.label}
+            {feature.detail ? (
+              <span className="min-w-0">
+                <span className="block">{feature.label}</span>
+                <span className="mt-0.5 block text-[0.8rem] text-muted">{feature.detail}</span>
+              </span>
+            ) : (
+              feature.label
+            )}
           </motion.li>
         );
       })}

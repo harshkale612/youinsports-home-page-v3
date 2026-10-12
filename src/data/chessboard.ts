@@ -156,7 +156,6 @@ export const BOARD_PRICE = 350;
 /** Renting boards for an event, in US dollars per board. */
 export const RENTAL = {
   hourly: 5,
-  minimumHours: 2,
   /** No board costs more than this for one day, however long the day runs. */
   dailyCap: 40,
   /** The estimator's range. */
@@ -166,16 +165,14 @@ export const RENTAL = {
 
 /**
  * What renting `boards` boards for a day of `hours` hours comes to: billed for
- * at least the minimum, and never more than the day cap per board.
+ * every hour played, and never more than the day cap per board.
  */
 export function rentalEstimate(boards: number, hours: number) {
-  const billedHours = Math.max(hours, RENTAL.minimumHours);
-  const uncapped = billedHours * RENTAL.hourly;
+  const uncapped = hours * RENTAL.hourly;
   const perBoard = Math.min(uncapped, RENTAL.dailyCap);
   return {
     total: perBoard * boards,
     perBoard,
-    billedHours,
     capped: uncapped > RENTAL.dailyCap,
   };
 }
@@ -188,21 +185,23 @@ export function phonesFor(boards: number) {
 /** The hours after which the day cap means the rest of the day is free. */
 export const CAP_HOURS = RENTAL.dailyCap / RENTAL.hourly;
 
-/** Hours of renting a board that cost as much as owning it. */
-export const RENT_TO_OWN_HOURS = Math.round(BOARD_PRICE / RENTAL.hourly);
-
-export type OfferFeature = { label: string; icon: LucideIcon };
+export type OfferFeature = {
+  label: string;
+  icon: LucideIcon;
+  /** A line under the label, drawn from what the page already says about it. */
+  detail?: string;
+};
 
 /** Everything a board does, as the card for owning one lists it. */
 export const OWN_FEATURES: OfferFeature[] = [
-  { label: "A sensor under every square", icon: Magnet },
-  { label: "Starts recording by itself", icon: Zap },
-  { label: "Standard PGN export", icon: FileCheck },
-  { label: "Four promotion buttons", icon: ChessQueen },
-  { label: "~85 moves held through a dropout", icon: History },
-  { label: "Live broadcast with a delay", icon: RadioTower },
-  { label: "Four boards on one phone", icon: Smartphone },
-  { label: "Battery and health readings", icon: BatteryMedium },
+  { label: "A sensor under every square", detail: "A magnet in every piece, and no camera", icon: Magnet },
+  { label: "Starts recording by itself", detail: "Set up all 32 pieces. No button, no pairing step", icon: Zap },
+  { label: "Standard PGN export", detail: "The format every chess site and database reads", icon: FileCheck },
+  { label: "Four promotion buttons", detail: "Press one, or don't: play never pauses", icon: ChessQueen },
+  { label: "~85 moves held through a dropout", detail: "It keeps recording when your phone doesn't", icon: History },
+  { label: "Live broadcast with a delay", detail: "Spectators follow behind a delay you set", icon: RadioTower },
+  { label: "Four boards on one phone", detail: "Enough for a club night or a small event", icon: Smartphone },
+  { label: "Battery and health readings", detail: "Battery, voltage, charging and temperature", icon: BatteryMedium },
 ];
 
 /** What a rental comes with, as its card lists it. */
