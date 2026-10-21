@@ -5,6 +5,7 @@ import { Mail } from "lucide-react";
 import { Container } from "@/components/ui/Primitives";
 import { ButtonLink } from "@/components/ui/Button";
 import { trackEvent } from "@/lib/analytics";
+import { SUPPORT_EMAIL } from "@/data/contact";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -88,7 +89,8 @@ export function AboutCta() {
             Start your journey
           </ButtonLink>
           <ButtonLink
-            href="mailto:hello@youinsports.ai"
+            // href="/contact" // Contact page switched off for now.
+            href={`mailto:${SUPPORT_EMAIL}`}
             variant="secondary"
             size="lg"
             onClick={() => trackEvent("about_cta_clicked", { target: "contact" })}

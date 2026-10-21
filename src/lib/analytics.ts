@@ -43,7 +43,16 @@ export type AnalyticsEvent =
   | "coming_soon_cta_clicked"
   // Products page
   | "products_viewed"
-  | "pricing_cta_clicked";
+  | "pricing_cta_clicked"
+  // Contact page
+  | "contact_viewed"
+  | "contact_email_copied"
+  | "contact_message_composed"
+  | "contact_cta_clicked"
+  // FAQ page
+  | "faq_viewed"
+  | "faq_question_opened"
+  | "faq_cta_clicked";
 
 /**
  * Dev-mode logging today; swap the body for a PostHog/Segment call later

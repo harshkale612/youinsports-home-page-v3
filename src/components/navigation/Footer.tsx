@@ -13,14 +13,17 @@ const GROUPS = [
   },
   {
     title: "Platform",
-    links: [{ label: "About", href: "/about" }],
+    links: [
+      { label: "About", href: "/about" },
+      { label: "FAQ", href: "/faq" },
+    ],
   },
   {
     title: "Legal",
     links: [
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
-      { label: "Contact", href: "mailto:hello@youinsports.ai" },
+      // { label: "Contact", href: "/contact" }, // Contact page switched off for now.
     ],
   },
 ];

@@ -1,12 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { THEME_COLOR, THEME_INIT_SCRIPT } from "@/theme/theme-config";
 import "./globals.css";
 
-const geist = Geist({
+// Self-hosted (Vercel's `geist` package, v1.8.1). Google Fonts sometimes
+// answers for Geist with `/l/font?kit=…&skey=…` URLs, which Turbopack's
+// next/font/google loader can't parse — it fails the build at random.
+const geist = localFont({
+  src: "./fonts/Geist-Variable.woff2",
   variable: "--font-geist",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "100 900",
 });
 
 const inter = Inter({
@@ -64,7 +68,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-full bg-void font-sans text-fg">{children}</body>
+      {/* Extensions such as Grammarly stamp `data-*` attributes on <body>
+          before hydration; as above, this covers this element's attributes only. */}
+      <body className="min-h-full bg-void font-sans text-fg" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }

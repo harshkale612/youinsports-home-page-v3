@@ -17,7 +17,7 @@ const LINKS = [
   { label: "Merchandise", href: "/merchandise" },
   { label: "YouInSports Foundation", href: "/foundation" },
   { label: "About Us", href: "/about" },
-  { label: "Contact Us", href: "/contact" },
+  // { label: "Contact Us", href: "/contact" }, // Contact page switched off for now.
 ];
 
 /**
