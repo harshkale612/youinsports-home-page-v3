@@ -4,26 +4,36 @@ import { FAQ_ENTRY_IDS } from "@/data/faq";
 import { readHash, replaceHash } from "@/hooks/useLocationHash";
 
 /**
- * Getting around the FAQ page: to a category, or straight to an answer. The
- * hero's shortcuts and the list itself share these, so every way in lands
- * the same way.
+ * Getting around the FAQ page. The URL's hash is the page's one record of
+ * which answer is open (`#technical-2`), so a shared link opens exactly what
+ * was being read. A topic's id in the hash (`#pricing`) is a link to that
+ * topic's section; the page's own topic links scroll there without touching
+ * the hash, which belongs to the open answer.
  */
 
 /** How long an answer takes to open or fold away, in seconds. */
 export const PANEL_DURATION = 0.5;
 
+/** Closes an answer. */
+export function closeEntry() {
+  replaceHash(null);
+}
+
 /**
- * Opens an entry from elsewhere on the page and brings it into view. Opening
- * it closes whichever was open; if that one sits above, its fold carries the
- * entry up the page, so the scroll waits for the fold to finish.
+ * Opens an entry from anywhere on the page (the search, a shortcut) and
+ * brings it into view. If an answer open above it is folding away, the
+ * scroll waits for the fold to finish.
  */
 export function openEntry(id: string) {
   const previous = readHash();
   replaceHash(id);
-  const target = document.getElementById(id);
-  if (!target) return;
-  if (foldsAbove(previous, id)) afterFold(previous, () => scrollToRest(target));
-  else window.setTimeout(() => scrollToRest(target), 50);
+  // A frame for the entry to start opening before measuring.
+  requestAnimationFrame(() => {
+    const target = document.getElementById(id);
+    if (!target) return;
+    if (foldsAbove(previous, id)) afterFold(previous, () => scrollToRest(target));
+    else window.setTimeout(() => scrollToRest(target), 50);
+  });
 }
 
 /** The id of an entry's answer panel, the part that opens and folds. */
@@ -59,37 +69,24 @@ export function afterFold(foldingId: string, then: () => void) {
   return stop;
 }
 
-/**
- * Glides to a category rather than jumping, and leaves the hash alone: the
- * hash belongs to the open entry. A modified click still opens the anchor
- * the browser's own way (a new tab, say).
- */
-export function jumpToCategory(event: React.MouseEvent<HTMLAnchorElement>, id: string) {
-  if (isModified(event)) return;
-  const section = document.getElementById(id);
-  if (!section) return;
-  event.preventDefault();
-  section.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
-  section.focus({ preventScroll: true });
-}
-
 /** A click the browser should handle itself: another button, or with a modifier key. */
 export function isModified(event: React.MouseEvent) {
   return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
 }
 
-/** Whether the entry `previousId` is open above `id`, so closing it moves `id` up the page. */
+/** Whether the entry `previousId` is open on screen above `id`, so closing it moves `id` up the page. */
 export function foldsAbove(previousId: string | undefined, id: string) {
   if (!previousId || previousId === id || !FAQ_ENTRY_IDS.has(previousId)) return false;
   const previous = document.getElementById(previousId);
   const target = document.getElementById(id);
-  return Boolean(previous && target && previous.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING);
+  if (!previous || !target || previous.getClientRects().length === 0) return false;
+  return Boolean(previous.compareDocumentPosition(target) & Node.DOCUMENT_POSITION_FOLLOWING);
 }
 
 /**
  * Brings `element` to the top of the screen, below the bar, measured where it
- * will come to rest: entries rise into place as they're revealed, and a
- * scroll aimed at one mid-rise would leave it short of the bar once it lands.
+ * will come to rest: content rises into place as it's revealed, and a scroll
+ * aimed at something mid-rise would leave it short once it lands.
  */
 export function scrollToRest(element: HTMLElement) {
   let top = element.getBoundingClientRect().top + window.scrollY;

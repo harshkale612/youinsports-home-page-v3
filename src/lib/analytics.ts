@@ -52,7 +52,10 @@ export type AnalyticsEvent =
   // FAQ page
   | "faq_viewed"
   | "faq_question_opened"
-  | "faq_cta_clicked";
+  | "faq_cta_clicked"
+  | "faq_searched"
+  | "faq_topic_selected"
+  | "faq_link_copied";
 
 /**
  * Dev-mode logging today; swap the body for a PostHog/Segment call later
