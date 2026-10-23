@@ -105,8 +105,9 @@ export function FaqItem({
         }}
         className="relative overflow-hidden"
       >
-        {/* Indented under the question text, past the row number. */}
-        <div className="px-5 pb-7 sm:pl-[4.25rem] md:pr-7 md:pb-8 md:pl-[5.25rem]">
+        {/* Indented under the question text, past the row number: the row's
+            padding, the number's w-6 and the gap after it. */}
+        <div className="px-5 pb-7 sm:pl-[3.75rem] md:pr-7 md:pb-8 md:pl-[4.5rem]">
           <p className="max-w-[62ch] text-[0.98rem] leading-[1.8] text-pretty text-muted">{entry.answer}</p>
 
           <AnimatePresence>
@@ -181,7 +182,8 @@ function CopyLink({ id }: { id: string }) {
         const url = `${window.location.origin}${window.location.pathname}#${id}`;
         if (await copy(url)) trackEvent("faq_link_copied", { id });
       }}
-      className="ml-auto inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[0.75rem] font-medium text-faint transition-colors duration-200 hover:text-fg"
+      // The negative margin lines the label up with the toggle above it.
+      className="-mr-2 ml-auto inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[0.75rem] font-medium text-faint transition-colors duration-200 hover:text-fg"
     >
       {copied ? <Check className="size-3.5 text-accent-strong" aria-hidden /> : <Link2 className="size-3.5" aria-hidden />}
       <span aria-live="polite">{copied ? "Link copied" : state === "failed" ? "Couldn't copy" : "Copy link"}</span>

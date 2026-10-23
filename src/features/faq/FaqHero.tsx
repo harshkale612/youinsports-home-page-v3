@@ -54,9 +54,11 @@ const FLOATERS = [
 export function FaqHero() {
   return (
     // Above the sections that follow, so the search's results can open over them.
+    // Half a section's space below, as above the closing panel, so the
+    // answers sit the same distance from what comes before and after them.
     <section
       aria-labelledby="faq-heading"
-      className="relative isolate z-10 pt-36 pb-24 md:pt-44 md:pb-32"
+      className="relative isolate z-10 pt-36 pb-[calc(var(--section-y)*0.5)] md:pt-44"
     >
       <HeroBackdrop />
 

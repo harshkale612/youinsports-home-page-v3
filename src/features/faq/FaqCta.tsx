@@ -66,11 +66,12 @@ export function FaqCta() {
         <div className="absolute top-[calc(100%-7rem)] left-1/2 aspect-square w-[max(160%,40rem)] -translate-x-1/2 rounded-full bg-planet shadow-[inset_0_1px_0_rgb(255_138_76/0.75)]" />
       </motion.div>
 
-      <Container className="relative">
+      {/* As wide as the answers above, so the panel's edges line up with theirs. */}
+      <Container className="relative max-w-[80rem]">
         <motion.div
           {...reveal}
           transition={{ duration: 1, ease }}
-          className="glass-brand relative mx-auto max-w-5xl overflow-hidden rounded-[2.25rem] px-6 py-12 sm:px-10 md:px-14 md:py-16"
+          className="glass-brand relative overflow-hidden rounded-[2.25rem] px-6 py-12 sm:px-10 md:px-14 md:py-16"
         >
           {/* Stage light in two corners, and an orbit behind the address. */}
           <div
@@ -88,7 +89,8 @@ export function FaqCta() {
             <span className="absolute top-1/2 -left-1 size-2 rounded-full bg-orange shadow-[0_0_14px_rgb(var(--orange-rgb)/var(--glow))]" />
           </div>
 
-          <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-14">
+          {/* Side by side only once the buttons fit on one line beside the text. */}
+          <div className="relative grid items-center gap-10 xl:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] xl:gap-14">
             <div>
               <p className="flex items-center gap-3 font-display text-[0.68rem] font-semibold tracking-[0.3em] text-orange uppercase">
                 <span className="h-px w-8 bg-gradient-to-r from-transparent to-orange" aria-hidden />
@@ -103,7 +105,7 @@ export function FaqCta() {
               </p>
             </div>
 
-            <div className="lg:justify-self-end">
+            <div className="xl:justify-self-end">
               <div className="flex items-center gap-3">
                 <span className="relative flex size-10 shrink-0 items-center justify-center rounded-full border border-accent-line bg-accent-soft text-accent-strong">
                   <span aria-hidden className="absolute inset-0 animate-pulse-ring rounded-full border border-accent/50" />
@@ -145,6 +147,7 @@ export function FaqCta() {
                   text={SUPPORT_EMAIL}
                   label="Copy address"
                   copiedLabel="Address copied"
+                  size="lg"
                   onCopied={() => trackEvent("faq_cta_clicked", { target: "copy" })}
                 />
               </div>

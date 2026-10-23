@@ -116,7 +116,7 @@ export function FaqExplorer() {
 
         <TopicBar active={active} />
 
-        <div className="mt-8 grid gap-10 md:mt-12 lg:mt-16 lg:grid-cols-[minmax(0,18.5rem)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
+        <div className="mt-8 grid gap-10 lg:mt-16 lg:grid-cols-[minmax(0,18.5rem)_minmax(0,1fr)] lg:gap-12 xl:gap-16">
           <TopicColumn active={active} listRef={listRef} />
 
           <div ref={listRef} className="flex min-w-0 flex-col gap-16 md:gap-20">
@@ -227,7 +227,8 @@ function TopicColumn({ active, listRef }: { active: string; listRef: React.RefOb
             })}
           </ul>
 
-          <div className="relative mt-3 rounded-2xl border border-tint/[0.07] bg-tint/[0.025] p-4">
+          {/* Inset like the rows above, so its text lines up with their marks. */}
+          <div className="relative mt-3 rounded-2xl border border-tint/[0.07] bg-tint/[0.025] px-3 py-4">
             <div className="flex items-center gap-2.5">
               <MessageCircleQuestion className="size-4 text-orange-strong" aria-hidden />
               <p className="font-display text-[0.9rem] font-semibold text-fg">Can’t find your answer?</p>
@@ -350,21 +351,25 @@ function TopicSection({
           <Icon className="size-5 md:size-6" aria-hidden />
         </span>
         <div className="min-w-0">
-          <p className="tabular flex flex-wrap items-center gap-x-2.5 gap-y-1 font-display text-[0.62rem] font-semibold tracking-[0.2em] text-faint uppercase">
-            <span>
-              Topic {String(number).padStart(2, "0")} / {String(FAQ_TOPICS.length).padStart(2, "0")}
+          {/* Every item leads with a dot, and the row starts a dot's width
+              outside the clip, so the dot that opens a line (the first
+              included) is never seen: a narrow screen wraps without leaving
+              a dot at either end of a line. */}
+          <p className="tabular overflow-hidden font-display text-[0.62rem] font-semibold tracking-[0.2em] text-faint uppercase">
+            <span className="-ml-3.5 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              <MetaItem>
+                Topic {String(number).padStart(2, "0")} / {String(FAQ_TOPICS.length).padStart(2, "0")}
+              </MetaItem>
+              <MetaItem>{questions.length} questions</MetaItem>
+              {videoCount > 0 && (
+                <MetaItem className="text-orange-strong">
+                  <span className="flex items-center gap-1">
+                    <Play className="size-2.5 fill-current" aria-hidden />
+                    {videoCount} with video
+                  </span>
+                </MetaItem>
+              )}
             </span>
-            <span aria-hidden className="size-1 rounded-full bg-tint/20" />
-            <span>{questions.length} questions</span>
-            {videoCount > 0 && (
-              <>
-                <span aria-hidden className="size-1 rounded-full bg-tint/20" />
-                <span className="flex items-center gap-1 text-orange-strong">
-                  <Play className="size-2.5 fill-current" aria-hidden />
-                  {videoCount} with video
-                </span>
-              </>
-            )}
           </p>
           <h3
             id={`${id}-heading`}
@@ -388,6 +393,16 @@ function TopicSection({
         ))}
       </motion.ul>
     </section>
+  );
+}
+
+/** One fact in a topic's header line, after its separating dot. */
+function MetaItem({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <span className={cn("flex items-center gap-2.5", className)}>
+      <span aria-hidden className="size-1 shrink-0 rounded-full bg-tint/20" />
+      {children}
+    </span>
   );
 }
 

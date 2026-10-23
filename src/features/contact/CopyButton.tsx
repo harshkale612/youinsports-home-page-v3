@@ -29,7 +29,7 @@ export function CopyButton({
   copiedLabel?: string;
   onCopied?: () => void;
   variant?: "primary" | "secondary";
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
   className?: string;
 }) {
   const { state, copy } = useCopyToClipboard();
